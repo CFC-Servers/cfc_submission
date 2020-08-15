@@ -89,9 +89,6 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 }
 
 func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		return
-	}
 	vars := mux.Vars(r)
 	suggestion, _ := s.Get(vars["id"])
 	if suggestion == nil || suggestion.Identifier == "" {
