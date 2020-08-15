@@ -75,20 +75,17 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	vars := mux.Vars(r)
-	var suggestionCreateData suggestionCreate
+
 	suggestion, _ := s.Get(vars["id"])
 	if suggestion == nil || suggestion.Identifier == "" {
 		errorJsonResponse(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
+	var suggestionCreateData suggestionCreate
 	json.Unmarshal(body, &suggestionCreateData)
 
-	embed := webhooks.Embed{
-		Title:       suggestionCreateData.Title,
-		Description: suggestionCreateData.Description,
-	}
-
+	embed := suggestionCreateData.GetEmbed(suggestion.Owner)
 	err := s.suggestionsWebhook.SendEmbed(embed)
 	if err != nil {
 		errorJsonResponse(w, http.StatusInternalServerError, "Couldn't send message")
@@ -98,13 +95,45 @@ func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Reques
 		Name:  "Suggestion Author",
 		Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
 	})
-
 	s.suggestionsLoggingWebhook.SendEmbed(embed)
 
 	s.Delete(suggestion.Identifier)
+
 	jsonResponse(w, http.StatusOK, map[string]string{
 		"status": "success",
 	})
+}
+
+type suggestionCreate struct {
+	Realm       string `json:"realm"`
+	Link string `json:"link"`
+	Title string `json:"title"`
+	Why string `json:"why"`
+	WhyNot string `json:"why_not"`
+	Anonymous bool `json:"anonymous"`
+}
+
+func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
+	description := fmt.Sprintf("**%v**\n\n%v", suggestion.Title, suggestion.Link)
+
+	if !suggestion.Anonymous {
+		description = description + fmt.Sprintf("\n\n<@!%v>", owner)
+	}
+
+	return webhooks.Embed{
+		Title:       fmt.Sprintf("%v Suggestion", suggestion.Realm),
+		Description: description,
+		Fields: []*webhooks.EmbedField{
+			{
+				Name:   "Why",
+				Value:  suggestion.Why,
+			},
+			{
+				Name: "Why Not",
+				Value:  suggestion.WhyNot,
+			},
+		},
+	}
 }
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
@@ -118,7 +147,3 @@ func errorJsonResponse(w http.ResponseWriter, statusCode int, err string) {
 	jsonResponse(w, statusCode, obj)
 }
 
-type suggestionCreate struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-}
