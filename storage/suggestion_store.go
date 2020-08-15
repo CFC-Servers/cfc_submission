@@ -9,7 +9,7 @@ type Suggestion struct {
 
 type SuggestionStore interface {
 	Create(owner string) (*Suggestion, error)
-	Get(identifier string) (*Suggestion, error)
+	GetActive(identifier string) (*Suggestion, error)
 	Delete(identifier string) error
 	Update(identifier string, active bool, contentJson string) error
 	DeleteActive(owner string) error

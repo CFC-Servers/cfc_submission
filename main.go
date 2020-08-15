@@ -49,6 +49,7 @@ func main() {
 
 		// CORS
 		middleware.SetHeader("Access-Control-Allow-Origin", "*"),
+		middleware.SetHeader("Access-Control-Allow-Headers", "*"),
 		mux.CORSMethodMiddleware(r),
 		middleware.IgnoreMethod(http.MethodOptions),
 	)
@@ -90,7 +91,7 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 
 func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	suggestion, _ := s.Get(vars["id"])
+	suggestion, _ := s.GetActive(vars["id"])
 	if suggestion == nil || suggestion.Identifier == "" {
 		errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
 		return
@@ -103,7 +104,7 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	body, _ := ioutil.ReadAll(r.Body)
 	vars := mux.Vars(r)
 
-	suggestion, _ := s.Get(vars["id"])
+	suggestion, _ := s.GetActive(vars["id"])
 	if suggestion == nil || suggestion.Identifier == "" {
 		errorJsonResponse(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
