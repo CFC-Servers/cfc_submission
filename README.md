@@ -32,3 +32,13 @@ Backend API for CFC Suggestions
         "status": "success"
     }
     ```
+    
+- POST /suggestions/{id}
+
+    example response
+    ```json
+    {
+        "identifier": "312c251b27de46c3a84c69482ebcbd59",
+        "owner": "179237013373845504"
+    }
+    ```
