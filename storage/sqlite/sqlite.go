@@ -35,7 +35,7 @@ func (store *SqliteSuggestionsStore) Create(owner string) (*storage.Suggestion, 
 	suggestion := storage.Suggestion{
 		Identifier: newIdentifier(),
 		Owner:      owner,
-		Active: true,
+		Active:     true,
 	}
 
 	_, err := store.db.Exec("INSERT INTO cfc_suggestions(identifier, owner, active) VALUES(?, ?, 1)", suggestion.Identifier, suggestion.Owner)
@@ -46,7 +46,7 @@ func (store *SqliteSuggestionsStore) Create(owner string) (*storage.Suggestion, 
 	return &suggestion, nil
 }
 
-func (store *SqliteSuggestionsStore) DeleteActive(owner string) (error) {
+func (store *SqliteSuggestionsStore) DeleteActive(owner string) error {
 	_, err := store.db.Exec("DELETE FROM cfc_suggestions WHERE owner=? AND active=1", owner)
 	return err
 }
