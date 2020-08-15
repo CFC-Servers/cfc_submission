@@ -16,9 +16,9 @@ import (
 type suggestionsServer struct {
 	storage.SuggestionStore
 
-	suggestionsWebhook webhooks.DiscordWebhook
+	suggestionsWebhook        webhooks.DiscordWebhook
 	suggestionsLoggingWebhook webhooks.DiscordWebhook
-	config             *suggestionsConfig
+	config                    *suggestionsConfig
 }
 
 func main() {
@@ -29,10 +29,10 @@ func main() {
 	config := loadConfig(*configFile)
 
 	s := suggestionsServer{
-		SuggestionStore:    sqlite.NewStore(config.Database),
-		suggestionsWebhook: webhooks.Webhook(config.SuggestionsWebhook),
+		SuggestionStore:           sqlite.NewStore(config.Database),
+		suggestionsWebhook:        webhooks.Webhook(config.SuggestionsWebhook),
 		suggestionsLoggingWebhook: webhooks.Webhook(config.SuggestionsLoggingWebhook),
-		config:             config,
+		config:                    config,
 	}
 
 	r := mux.NewRouter()
@@ -75,7 +75,7 @@ func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Reques
 	json.Unmarshal(body, &suggestionCreateData)
 
 	embed := webhooks.Embed{
-		Title: suggestionCreateData.Title,
+		Title:       suggestionCreateData.Title,
 		Description: suggestionCreateData.Description,
 	}
 
@@ -85,8 +85,8 @@ func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	embed.Fields = append(embed.Fields, &webhooks.EmbedField{
-		Name:   "Suggestion Author",
-		Value:  fmt.Sprintf("<@!%v>", suggestion.Owner),
+		Name:  "Suggestion Author",
+		Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
 	})
 
 	s.suggestionsLoggingWebhook.SendEmbed(embed)
