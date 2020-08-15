@@ -14,13 +14,6 @@ import (
 	"net/http"
 )
 
-type suggestionsServer struct {
-	storage.SuggestionStore
-
-	suggestionsWebhook        webhooks.DiscordWebhook
-	suggestionsLoggingWebhook webhooks.DiscordWebhook
-	config                    *suggestionsConfig
-}
 
 func main() {
 	port := flag.String("port", "4000", "the port to run the http server on")
@@ -47,10 +40,19 @@ func main() {
 		middleware.RequireAuth(config.AuthToken, http.HandlerFunc(s.createSuggestionHandler)),
 	).Methods("POST")
 
-	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestion).Methods("POST")
-
+	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods("POST")
+	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods("GET")
 	addr := ":" + *port
 	http.ListenAndServe(addr, r)
+}
+
+
+type suggestionsServer struct {
+	storage.SuggestionStore
+
+	suggestionsWebhook        webhooks.DiscordWebhook
+	suggestionsLoggingWebhook webhooks.DiscordWebhook
+	config                    *suggestionsConfig
 }
 
 func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +74,18 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 	jsonResponse(w, http.StatusCreated, suggestion)
 }
 
-func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Request) {
+func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	suggestion, _ := s.Get(vars["id"])
+	if suggestion == nil || suggestion.Identifier == "" {
+		errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, suggestion)
+}
+
+func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	vars := mux.Vars(r)
 
@@ -104,13 +117,14 @@ func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+
 type suggestionCreate struct {
-	Realm       string `json:"realm"`
-	Link string `json:"link"`
-	Title string `json:"title"`
-	Why string `json:"why"`
-	WhyNot string `json:"why_not"`
-	Anonymous bool `json:"anonymous"`
+	Realm     string `json:"realm"`
+	Link      string `json:"link"`
+	Title     string `json:"title"`
+	Why       string `json:"why"`
+	WhyNot    string `json:"why_not"`
+	Anonymous bool   `json:"anonymous"`
 }
 
 func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
@@ -125,16 +139,17 @@ func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
 		Description: description,
 		Fields: []*webhooks.EmbedField{
 			{
-				Name:   "Why",
-				Value:  suggestion.Why,
+				Name:  "Why",
+				Value: suggestion.Why,
 			},
 			{
-				Name: "Why Not",
-				Value:  suggestion.WhyNot,
+				Name:  "Why Not",
+				Value: suggestion.WhyNot,
 			},
 		},
 	}
 }
+
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
 	jsonData, _ := json.Marshal(obj)
@@ -146,4 +161,3 @@ func errorJsonResponse(w http.ResponseWriter, statusCode int, err string) {
 	obj := map[string]string{"error": err}
 	jsonResponse(w, statusCode, obj)
 }
-
