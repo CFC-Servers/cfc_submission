@@ -14,7 +14,6 @@ import (
 	"net/http"
 )
 
-
 func main() {
 	port := flag.String("port", "4000", "the port to run the http server on")
 	configFile := flag.String("config", "cfc_suggestions_config.json", "configuration file location")
@@ -47,7 +46,6 @@ func main() {
 	log.Printf("Listening on %v", addr)
 	http.ListenAndServe(addr, r)
 }
-
 
 type suggestionsServer struct {
 	storage.SuggestionStore
@@ -123,7 +121,6 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	})
 }
 
-
 type suggestionCreate struct {
 	Realm     string `json:"realm"`
 	Link      string `json:"link"`
@@ -160,7 +157,6 @@ func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
 		},
 	}
 }
-
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
 	jsonData, _ := json.Marshal(obj)
