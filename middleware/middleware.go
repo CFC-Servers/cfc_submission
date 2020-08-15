@@ -3,8 +3,31 @@ package middleware
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
+
+func LogRequests(next http.Handler) http.Handler {
+	h := func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%v : %v %v", r.RemoteAddr, r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(h)
+}
+
+func IgnoreMethod(method string) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		f := func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == method {
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(f)
+	}
+}
 
 func RequireAuth(token string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +47,7 @@ func RequireAuth(token string, next http.Handler) http.Handler {
 func SetHeader(key, value string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set(key, value)
 			next.ServeHTTP(w, r)
 		})
 	}
