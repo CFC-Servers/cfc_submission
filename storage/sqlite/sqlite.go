@@ -51,9 +51,9 @@ func (store *SqliteSuggestionsStore) DeleteActive(owner string) error {
 	return err
 }
 
-func (store *SqliteSuggestionsStore) Get(identifier string) (*storage.Suggestion, error) {
+func (store *SqliteSuggestionsStore) GetActive(identifier string) (*storage.Suggestion, error) {
 	suggestion := storage.Suggestion{}
-	row := store.db.QueryRow("SELECT * FROM cfc_suggestions WHERE identifier=?", identifier)
+	row := store.db.QueryRow("SELECT * FROM cfc_suggestions WHERE identifier=? AND active=1", identifier)
 	err := row.Scan(&suggestion.Identifier, &suggestion.Owner, &suggestion.Active, &suggestion.ContentJson)
 	return &suggestion, err
 }
