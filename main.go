@@ -16,8 +16,9 @@ import (
 type suggestionsServer struct {
 	storage.SuggestionStore
 
-	discordWebhook webhooks.DiscordWebhook
-	config         *suggestionsConfig
+	suggestionsWebhook webhooks.DiscordWebhook
+	suggestionsLoggingWebhook webhooks.DiscordWebhook
+	config             *suggestionsConfig
 }
 
 func main() {
@@ -28,9 +29,10 @@ func main() {
 	config := loadConfig(*configFile)
 
 	s := suggestionsServer{
-		SuggestionStore: sqlite.NewStore(config.Database),
-		discordWebhook:  webhooks.Webhook(config.SuggestionsWebhook),
-		config:          config,
+		SuggestionStore:    sqlite.NewStore(config.Database),
+		suggestionsWebhook: webhooks.Webhook(config.SuggestionsWebhook),
+		suggestionsLoggingWebhook: webhooks.Webhook(config.SuggestionsLoggingWebhook),
+		config:             config,
 	}
 
 	r := mux.NewRouter()
@@ -72,16 +74,22 @@ func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Reques
 
 	json.Unmarshal(body, &suggestionCreateData)
 
-	err := s.discordWebhook.SendEmbed(webhooks.Embed{
+	embed := webhooks.Embed{
 		Title: suggestionCreateData.Title,
-		Description: fmt.Sprintf(
-			"%v\n\nAuthor: <@!%v>",
-			suggestionCreateData.Description, suggestion.Owner),
-	})
+		Description: suggestionCreateData.Description,
+	}
+
+	err := s.suggestionsWebhook.SendEmbed(embed)
 	if err != nil {
 		errorJsonResponse(w, http.StatusInternalServerError, "Couldn't send message")
 		return
 	}
+	embed.Fields = append(embed.Fields, &webhooks.EmbedField{
+		Name:   "Suggestion Author",
+		Value:  fmt.Sprintf("<@!%v>", suggestion.Owner),
+	})
+
+	s.suggestionsLoggingWebhook.SendEmbed(embed)
 
 	s.Delete(suggestion.Identifier)
 	jsonResponse(w, http.StatusOK, map[string]string{

@@ -8,6 +8,7 @@ import (
 type suggestionsConfig struct {
 	SuggestionsWebhook string `json:"suggestions_webhook"`
 	Database string `json:"database"`
+	SuggestionsLoggingWebhook string `json:"suggestions_logging_webhook"`
 }
 
 func loadConfig(filename string) *suggestionsConfig {
