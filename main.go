@@ -42,7 +42,9 @@ func main() {
 
 	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods("POST")
 	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods("GET")
+
 	addr := ":" + *port
+	log.Printf("Listening on %v", addr)
 	http.ListenAndServe(addr, r)
 }
 
@@ -62,14 +64,17 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 
 	owner, ok := newSuggestionData["owner"]
 	if !ok {
-		errorJsonResponse(w, http.StatusBadRequest, "Failed to provide  an owner")
+		errorJsonResponse(w, http.StatusBadRequest, "Failed to provide an owner")
 		return
 	}
+
+	s.DeleteActive(owner)
 
 	suggestion, err := s.Create(owner)
 	if err != nil {
 		log.Print(err)
 		errorJsonResponse(w, http.StatusInternalServerError, "Database error")
+		return
 	}
 	jsonResponse(w, http.StatusCreated, suggestion)
 }
@@ -104,13 +109,14 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 		errorJsonResponse(w, http.StatusInternalServerError, "Couldn't send message")
 		return
 	}
+
 	embed.Fields = append(embed.Fields, &webhooks.EmbedField{
 		Name:  "Suggestion Author",
 		Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
 	})
 	s.suggestionsLoggingWebhook.SendEmbed(embed)
 
-	s.Delete(suggestion.Identifier)
+	s.Update(suggestion.Identifier, false, suggestionCreateData.JsonString())
 
 	jsonResponse(w, http.StatusOK, map[string]string{
 		"status": "success",
@@ -125,6 +131,11 @@ type suggestionCreate struct {
 	Why       string `json:"why"`
 	WhyNot    string `json:"why_not"`
 	Anonymous bool   `json:"anonymous"`
+}
+
+func (suggestion suggestionCreate) JsonString() string {
+	data, _ := json.Marshal(suggestion)
+	return string(data)
 }
 
 func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
