@@ -28,7 +28,9 @@ func main() {
 	flag.Parse()
 
 	config := loadConfig(*configFile)
-	if config.AuthToken == "" { log.Fatal("auth_token not set in config") }
+	if config.AuthToken == "" {
+		log.Fatal("auth_token not set in config")
+	}
 
 	s := suggestionsServer{
 		SuggestionStore:           sqlite.NewStore(config.Database),
