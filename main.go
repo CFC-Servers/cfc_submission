@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/cfc-servers/cfc_suggestions/middleware"
 	"github.com/cfc-servers/cfc_suggestions/storage"
 	"github.com/cfc-servers/cfc_suggestions/storage/sqlite"
 	"github.com/cfc-servers/cfc_suggestions/webhooks"
@@ -27,6 +28,7 @@ func main() {
 	flag.Parse()
 
 	config := loadConfig(*configFile)
+	if config.AuthToken == "" { log.Fatal("auth_token not set in config") }
 
 	s := suggestionsServer{
 		SuggestionStore:           sqlite.NewStore(config.Database),
@@ -36,7 +38,13 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/suggestions", s.createSuggestionHandler).Methods("POST")
+	r.Use(middleware.SetHeader("Content-Type", "application/json"))
+
+	r.Handle(
+		"/suggestions",
+		middleware.RequireAuth(config.AuthToken, http.HandlerFunc(s.createSuggestionHandler)),
+	).Methods("POST")
+
 	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestion).Methods("POST")
 
 	addr := ":" + *port
@@ -99,7 +107,6 @@ func (s *suggestionsServer) sendSuggestion(w http.ResponseWriter, r *http.Reques
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
 	jsonData, _ := json.Marshal(obj)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(jsonData)
 }
