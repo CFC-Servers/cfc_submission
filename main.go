@@ -117,10 +117,12 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	embed.Fields = append(embed.Fields, &webhooks.EmbedField{
-		Name:  "Suggestion Author",
-		Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
-	})
+	if suggestion.Anonymous {
+        embed.Fields = append(embed.Fields, &webhooks.EmbedField{
+            Name:  "Suggestion Author",
+            Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
+        })
+    }
 	s.suggestionsLoggingWebhook.SendEmbed(embed)
 
 	s.Update(suggestion.Identifier, false, suggestionCreateData.JsonString())
