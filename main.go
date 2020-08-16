@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	host := flag.String("host", "127.0.0.1", "the host to run the http server on")
 	port := flag.String("port", "4000", "the port to run the http server on")
 	configFile := flag.String("config", "cfc_suggestions_config.json", "configuration file location")
 	flag.Parse()
@@ -50,7 +51,7 @@ func main() {
 		middleware.IgnoreMethod(http.MethodOptions),
 	)
 
-	addr := ":" + *port
+	addr := *host + ":" + *port
 	log.Printf("Listening on %v", addr)
 	http.ListenAndServe(addr, r)
 }
@@ -146,11 +147,7 @@ func (suggestion suggestionCreate) JsonString() string {
 func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
 	description := fmt.Sprintf("**%v**\n\n%v", suggestion.Title, suggestion.Link)
 
-	if !suggestion.Anonymous {
-		description = description + fmt.Sprintf("\n\n<@!%v>", owner)
-	}
-
-	return webhooks.Embed{
+    embed := webhooks.Embed{
 		Title:       fmt.Sprintf("%v Suggestion", suggestion.Realm),
 		Description: description,
 		Fields: []*webhooks.EmbedField{
@@ -164,6 +161,15 @@ func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
 			},
 		},
 	}
+
+	if !suggestion.Anonymous {
+        embed.Fields = append(embed.Fields, &webhooks.EmbedField{
+            Name:  "Suggestion Author",
+            Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
+        })
+	}
+
+	return embed
 }
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
