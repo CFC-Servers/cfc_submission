@@ -165,7 +165,7 @@ func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
 	if !suggestion.Anonymous {
         embed.Fields = append(embed.Fields, &webhooks.EmbedField{
             Name:  "Suggestion Author",
-            Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
+            Value: fmt.Sprintf("<@!%v>", owner),
         })
 	}
 
