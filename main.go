@@ -30,25 +30,18 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {} ).Methods(http.MethodOptions, http.MethodOptions)
 	r.Handle(
 		"/suggestions",
 		middleware.RequireAuth(config.AuthToken, http.HandlerFunc(s.createSuggestionHandler)),
-	).Methods(http.MethodPost, http.MethodOptions)
+	).Methods(http.MethodPost)
 
-	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods(http.MethodPost)
+	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods(http.MethodGet)
 
 
 	r.Use(
 		middleware.SetHeader("Content-Type", "application/json"),
 		middleware.LogRequests,
-
-		// CORS
-		middleware.SetHeader("Access-Control-Allow-Origin", "*"),
-		middleware.SetHeader("Access-Control-Allow-Headers", "*"),
-		mux.CORSMethodMiddleware(r),
-		middleware.IgnoreMethod(http.MethodOptions),
 	)
 
 	addr := ":" + *port
