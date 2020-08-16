@@ -20,9 +20,6 @@ func main() {
 	flag.Parse()
 
 	config := loadConfig(*configFile)
-	if config.AuthToken == "" {
-		log.Fatal("auth_token not set in config")
-	}
 
 	s := suggestionsServer{
 		SuggestionStore:           sqlite.NewStore(config.Database),
@@ -138,7 +135,7 @@ type suggestionCreate struct {
 	Link      string `json:"link"`
 	Title     string `json:"title"`
 	Why       string `json:"why"`
-	WhyNot    string `json:"why_not"`
+	WhyNot    string `json:"whyNot"`
 	Anonymous bool   `json:"anonymous"`
 }
 

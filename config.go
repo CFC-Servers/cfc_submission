@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 )
 
@@ -23,5 +24,10 @@ func loadConfig(filename string) *suggestionsConfig {
 	if err = decoder.Decode(&config); err != nil {
 		panic(err)
 	}
+
+	if config.AuthToken == "" {
+		log.Fatal("auth_token not set in config")
+	}
+
 	return &config
 }
