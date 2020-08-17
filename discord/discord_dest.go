@@ -47,6 +47,10 @@ func (dest *DiscordDestination) Send(suggestion *suggestions.Suggestion) (string
 	return message.ID, err
 }
 
+func (dest *DiscordDestination) Delete(messageId string) error {
+	return dest.session.ChannelMessageDelete(dest.channelId, messageId)
+}
+
 func (dest *DiscordDestination) SendEdit(suggestion *suggestions.Suggestion) (string, error) {
 
 	if suggestion.MessageID == "" {
@@ -62,6 +66,7 @@ func (dest *DiscordDestination) SendEdit(suggestion *suggestions.Suggestion) (st
 	if err != nil {
 		err = fmt.Errorf("Error sending destination: %w", err)
 		log.Error(err)
+		return "", err
 	}
 
 	return message.ID, err

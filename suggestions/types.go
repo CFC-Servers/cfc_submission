@@ -20,11 +20,13 @@ type SuggestionContent struct {
 type SuggestionStore interface {
 	Create(owner string) (*Suggestion, error)
 	Get(identifier string) (*Suggestion, error)
+	Delete(identifier string) (error)
 	Update(suggestion *Suggestion) error
-	Delete(owner string, onlyUnsent bool) error
+	DeleteByOwner(owner string, onlyUnsent bool) error
 }
 
 type Destination interface {
-	Send(content *Suggestion) (messageId string, err error)
-	SendEdit(content *Suggestion) (messageId string, err error)
+	Send(suggestion *Suggestion) (messageId string, err error)
+	SendEdit(suggestion *Suggestion) (messageId string, err error)
+	Delete(messageId string) error
 }

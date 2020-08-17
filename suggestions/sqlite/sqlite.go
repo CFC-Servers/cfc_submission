@@ -55,8 +55,13 @@ func (store *SqliteSuggestionsStore) Create(owner string) (*suggestions.Suggesti
 
 	return &suggestion, nil
 }
+func (store *SqliteSuggestionsStore) Delete(identifier string) error {
+	query := "DELETE FROM cfc_suggestions WHERE identifier=?"
+	_, err := store.db.Exec(query, identifier)
+	return err
+}
 
-func (store *SqliteSuggestionsStore) Delete(owner string, onlyUnsent bool) error {
+func (store *SqliteSuggestionsStore) DeleteByOwner(owner string, onlyUnsent bool) error {
 	query := "DELETE FROM cfc_suggestions WHERE owner=?"
 	if onlyUnsent == true {
 		query = query + " AND sent=0"

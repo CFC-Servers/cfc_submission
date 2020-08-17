@@ -27,6 +27,7 @@ func TestHandlers(t *testing.T) {
 	r := mux.NewRouter()
 	r.HandleFunc("/suggestions", server.createSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/suggestions/{id}", server.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/suggestions/{id}", server.deleteSuggestionHandler).Methods(http.MethodDelete)
 
 	testData := []struct {
 		handler        http.Handler
@@ -84,6 +85,15 @@ func TestHandlers(t *testing.T) {
 			http.StatusNotFound,
 			map[string]string{"id": "13456"},
 		},
+		{
+			r,
+			"DELETE",
+			fmt.Sprintf("/suggestions/%v", "13456"),
+			``,
+			map[string]string{},
+			http.StatusNotFound,
+			map[string]string{"id": "13456"},
+		},
 	}
 
 	for _, data := range testData {
@@ -117,3 +127,4 @@ type DummyDest struct {
 
 func (*DummyDest) Send(*suggestions.Suggestion) (string, error)     { return "", nil }
 func (*DummyDest) SendEdit(*suggestions.Suggestion) (string, error) { return "", nil }
+func (*DummyDest) Delete(string) (error) { return nil }
