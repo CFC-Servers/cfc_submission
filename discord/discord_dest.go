@@ -10,13 +10,14 @@ import (
 )
 
 const editedAtTimeFormat = "Mon Jan _2 15:04:05 2006"
+
 var realms = map[string]string{
-	"cfc3": "Build/Kill",
-	"cfcrp": "DarkRP",
-	"cfcmc": "Minecraft",
-	"cfcrvr": "Raft V Raft",
+	"cfc3":    "Build/Kill",
+	"cfcrp":   "DarkRP",
+	"cfcmc":   "Minecraft",
+	"cfcrvr":  "Raft V Raft",
 	"discord": "Discord",
-	"other": "Other",
+	"other":   "Other",
 }
 
 type DiscordDestination struct {
