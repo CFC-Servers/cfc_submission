@@ -100,16 +100,13 @@ func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *di
 		})
 	}
 	if dest.loggingChannel {
-		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-			Name:  "Is Edit",
-			Value: "True",
-		})
-		if suggestion.MessageID != "" {
+		if len(suggestion.MessageID) > 0  {
 			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 				Name:  "message id",
 				Value: suggestion.MessageID,
 			})
 		}
 	}
+
 	return embed
 }
