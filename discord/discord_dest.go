@@ -10,6 +10,14 @@ import (
 )
 
 const editedAtTimeFormat = "Mon Jan _2 15:04:05 2006"
+const realms = map[string]string{
+	"cfc3": "Build/Kill",
+	"cfcrp": "DarkRP",
+	"cfcmc": "Minecraft",
+	"cfcrvr": "Raft V Raft",
+	"discord": "Discord",
+	"other": "Other",
+}
 
 type DiscordDestination struct {
 	session        *discordgo.Session
@@ -59,9 +67,15 @@ func (dest *DiscordDestination) SendEdit(suggestion *suggestions.Suggestion) (st
 }
 
 func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *discordgo.MessageEmbed {
+
 	content := suggestion.Content
+	humanFriendlyRealm, ok := realms[content.Realm]
+	if !ok {
+		humanFriendlyRealm = "Other"
+	}
+
 	embed := &discordgo.MessageEmbed{
-		Title:       fmt.Sprintf("%v Suggestion", content.Realm),
+		Title:       fmt.Sprintf("%v Suggestion", humanFriendlyRealm),
 		Description: fmt.Sprintf("**__%v__**", content.Title),
 		Color:       0x34EB77,
 		Fields: []*discordgo.MessageEmbedField{

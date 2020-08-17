@@ -118,13 +118,16 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	json.Unmarshal(body, &suggestionContent)
 	suggestion.Content = &suggestionContent
 
-	s.loggingDest.Send(suggestion)
+
 	if suggestion.Sent {
 		_, err := s.suggestionsDest.SendEdit(suggestion)
 		if err != nil {
 			errorJsonResponse(w, http.StatusInternalServerError, "Couldnt send your suggestion")
+		} else {
+			s.loggingDest.Send(suggestion)
 		}
 		return
+
 	}
 
 	messageId, err := s.suggestionsDest.Send(suggestion)
@@ -135,6 +138,7 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 		errorJsonResponse(w, http.StatusInternalServerError, "Couldnt send your suggestion")
 		return
 	}
+	s.loggingDest.Send(suggestion)
 	s.Update(suggestion)
 
 	jsonResponse(w, http.StatusOK, map[string]string{
