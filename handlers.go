@@ -70,10 +70,10 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 			return
 		}
 		s.loggingDest.Send(suggestion)
+		s.Update(suggestion)
 		jsonResponse(w, http.StatusOK, map[string]string{
 			"status": "success",
 		})
-
 		return
 	}
 
