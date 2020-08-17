@@ -56,4 +56,3 @@ func main() {
 	log.Infof("Listening on %v", addr)
 	http.ListenAndServe(addr, r)
 }
-
