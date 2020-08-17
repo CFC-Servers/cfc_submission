@@ -42,13 +42,16 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     suggestion, _ := s.Get(vars["id"])
-
+    if suggestion == nil {
+        errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
+        return
+    }
     jsonResponse(w, http.StatusOK, suggestion)
 }
 
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
     var suggestionContent suggestions.SuggestionContent
-    unmarshallBody(r, suggestionContent)
+    unmarshallBody(r, &suggestionContent)
 
     vars := mux.Vars(r)
 
