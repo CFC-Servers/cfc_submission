@@ -76,7 +76,7 @@ func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *di
 
 	embed := &discordgo.MessageEmbed{
 		Title:       fmt.Sprintf("%v Suggestion", humanFriendlyRealm),
-		Description: fmt.Sprintf("**__%v__**", content.Title),
+		Description: fmt.Sprintf("**__%v__**\n\n%v", content.Title, content.Link),
 		Color:       0x34EB77,
 		Fields: []*discordgo.MessageEmbedField{
 			{
