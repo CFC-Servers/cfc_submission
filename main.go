@@ -118,7 +118,6 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	json.Unmarshal(body, &suggestionContent)
 	suggestion.Content = &suggestionContent
 
-
 	if suggestion.Sent {
 		_, err := s.suggestionsDest.SendEdit(suggestion)
 		if err != nil {
