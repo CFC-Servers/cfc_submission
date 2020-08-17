@@ -3,13 +3,13 @@ package middleware
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func LogRequests(next http.Handler) http.Handler {
 	h := func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%v : %v %v", r.RemoteAddr, r.Method, r.URL.Path)
+		log.Infof("%v : %v %v", r.RemoteAddr, r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	}
 

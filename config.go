@@ -7,10 +7,11 @@ import (
 )
 
 type suggestionsConfig struct {
-	SuggestionsWebhook        string `json:"suggestions_webhook"`
+	SuggestionsChannel        string `json:"suggestions_channel"`
 	Database                  string `json:"database"`
-	SuggestionsLoggingWebhook string `json:"suggestions_logging_webhook"`
+	SuggestionsLoggingChannel string `json:"suggestions_logging_channel"`
 	AuthToken                 string `json:"auth_token"`
+	BotToken                  string `json:"bot_token"`
 }
 
 func loadConfig(filename string) *suggestionsConfig {

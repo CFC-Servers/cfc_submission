@@ -1,31 +1,38 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
-	"fmt"
+	"github.com/bwmarrin/discordgo"
+	"github.com/cfc-servers/cfc_suggestions/discord"
 	"github.com/cfc-servers/cfc_suggestions/middleware"
-	"github.com/cfc-servers/cfc_suggestions/storage"
-	"github.com/cfc-servers/cfc_suggestions/storage/sqlite"
-	"github.com/cfc-servers/cfc_suggestions/webhooks"
+	"github.com/cfc-servers/cfc_suggestions/suggestions"
+	"github.com/cfc-servers/cfc_suggestions/suggestions/sqlite"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 func main() {
+	host := flag.String("host", "127.0.0.1", "the host to run the http server on")
 	port := flag.String("port", "4000", "the port to run the http server on")
 	configFile := flag.String("config", "cfc_suggestions_config.json", "configuration file location")
 	flag.Parse()
 
 	config := loadConfig(*configFile)
 
+	discordgoSession, err := discordgo.New(config.BotToken)
+	if err != nil {
+		panic(err)
+	}
 	s := suggestionsServer{
-		SuggestionStore:           sqlite.NewStore(config.Database),
-		suggestionsWebhook:        webhooks.Webhook(config.SuggestionsWebhook),
-		suggestionsLoggingWebhook: webhooks.Webhook(config.SuggestionsLoggingWebhook),
-		config:                    config,
+		suggestionsDest: discord.NewDest(config.SuggestionsChannel, false, discordgoSession),
+		loggingDest:     discord.NewDest(config.SuggestionsLoggingChannel, true, discordgoSession),
+		SuggestionStore: sqlite.NewStore(config.Database),
+		config:          config,
 	}
 
 	r := mux.NewRouter()
@@ -38,7 +45,6 @@ func main() {
 	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
 
-
 	r.Use(
 		middleware.SetHeader("Content-Type", "application/json"),
 		middleware.LogRequests,
@@ -50,17 +56,17 @@ func main() {
 		middleware.IgnoreMethod(http.MethodOptions),
 	)
 
-	addr := ":" + *port
-	log.Printf("Listening on %v", addr)
+	addr := *host + ":" + *port
+	log.Infof("Listening on %v", addr)
 	http.ListenAndServe(addr, r)
 }
 
 type suggestionsServer struct {
-	storage.SuggestionStore
+	suggestions.SuggestionStore
 
-	suggestionsWebhook        webhooks.DiscordWebhook
-	suggestionsLoggingWebhook webhooks.DiscordWebhook
-	config                    *suggestionsConfig
+	suggestionsDest suggestions.Destination
+	loggingDest     suggestions.Destination
+	config          *suggestionsConfig
 }
 
 func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *http.Request) {
@@ -68,27 +74,29 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 	var newSuggestionData map[string]string
 	json.Unmarshal(body, &newSuggestionData)
 
-	owner, ok := newSuggestionData["owner"]
-	if !ok {
+	owner, _ := newSuggestionData["owner"]
+	if owner == "" {
 		errorJsonResponse(w, http.StatusBadRequest, "Failed to provide an owner")
 		return
 	}
 
-	s.DeleteActive(owner)
+	s.Delete(owner, true)
 
 	suggestion, err := s.Create(owner)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		errorJsonResponse(w, http.StatusInternalServerError, "Database error")
 		return
 	}
+
 	jsonResponse(w, http.StatusCreated, suggestion)
 }
 
 func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	suggestion, _ := s.GetActive(vars["id"])
-	if suggestion == nil || suggestion.Identifier == "" {
+	suggestion, err := s.Get(vars["id"])
+
+	if errors.Is(err, sql.ErrNoRows) {
 		errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
@@ -100,70 +108,38 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	body, _ := ioutil.ReadAll(r.Body)
 	vars := mux.Vars(r)
 
-	suggestion, _ := s.GetActive(vars["id"])
-	if suggestion == nil || suggestion.Identifier == "" {
+	suggestion, _ := s.Get(vars["id"])
+	if suggestion == nil {
 		errorJsonResponse(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
-	var suggestionCreateData suggestionCreate
-	json.Unmarshal(body, &suggestionCreateData)
+	var suggestionContent suggestions.SuggestionContent
+	json.Unmarshal(body, &suggestionContent)
+	suggestion.Content = &suggestionContent
 
-	embed := suggestionCreateData.GetEmbed(suggestion.Owner)
-	err := s.suggestionsWebhook.SendEmbed(embed)
-	if err != nil {
-		errorJsonResponse(w, http.StatusInternalServerError, "Couldn't send message")
+	s.loggingDest.Send(suggestion)
+	if suggestion.Sent {
+		_, err := s.suggestionsDest.SendEdit(suggestion)
+		if err != nil {
+			errorJsonResponse(w, http.StatusInternalServerError, "Couldnt send your suggestion")
+		}
 		return
 	}
 
-	embed.Fields = append(embed.Fields, &webhooks.EmbedField{
-		Name:  "Suggestion Author",
-		Value: fmt.Sprintf("<@!%v>", suggestion.Owner),
-	})
-	s.suggestionsLoggingWebhook.SendEmbed(embed)
+	messageId, err := s.suggestionsDest.Send(suggestion)
 
-	s.Update(suggestion.Identifier, false, suggestionCreateData.JsonString())
+	suggestion.Sent = true
+	suggestion.MessageID = messageId
+	if err != nil {
+		errorJsonResponse(w, http.StatusInternalServerError, "Couldnt send your suggestion")
+		return
+	}
+	s.Update(suggestion)
 
 	jsonResponse(w, http.StatusOK, map[string]string{
 		"status": "success",
 	})
-}
-
-type suggestionCreate struct {
-	Realm     string `json:"realm"`
-	Link      string `json:"link"`
-	Title     string `json:"title"`
-	Why       string `json:"why"`
-	WhyNot    string `json:"whyNot"`
-	Anonymous bool   `json:"anonymous"`
-}
-
-func (suggestion suggestionCreate) JsonString() string {
-	data, _ := json.Marshal(suggestion)
-	return string(data)
-}
-
-func (suggestion suggestionCreate) GetEmbed(owner string) webhooks.Embed {
-	description := fmt.Sprintf("**%v**\n\n%v", suggestion.Title, suggestion.Link)
-
-	if !suggestion.Anonymous {
-		description = description + fmt.Sprintf("\n\n<@!%v>", owner)
-	}
-
-	return webhooks.Embed{
-		Title:       fmt.Sprintf("%v Suggestion", suggestion.Realm),
-		Description: description,
-		Fields: []*webhooks.EmbedField{
-			{
-				Name:  "Why",
-				Value: suggestion.Why,
-			},
-			{
-				Name:  "Why Not",
-				Value: suggestion.WhyNot,
-			},
-		},
-	}
 }
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
