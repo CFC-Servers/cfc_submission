@@ -10,7 +10,7 @@ import (
 )
 
 const editedAtTimeFormat = "Mon Jan _2 15:04:05 2006"
-const realms = map[string]string{
+var realms = map[string]string{
 	"cfc3": "Build/Kill",
 	"cfcrp": "DarkRP",
 	"cfcmc": "Minecraft",
