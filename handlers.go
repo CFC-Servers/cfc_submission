@@ -27,7 +27,7 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	s.Delete(owner, true)
+	s.DeleteByOwner(owner, true)
 
 	suggestion, err := s.Create(owner)
 	if err != nil {
@@ -47,6 +47,27 @@ func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	jsonResponse(w, http.StatusOK, suggestion)
+}
+
+func (s *suggestionsServer) deleteSuggestionHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	suggestion, _ := s.Get(vars["id"])
+	if suggestion == nil {
+		errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
+		return
+	}
+
+	s.suggestionsDest.Delete(suggestion.MessageID)
+	err := s.Delete(suggestion.Identifier)
+	if err != nil {
+		log.Errorf("Database error %v", err)
+		errorJsonResponse(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"status": "success",
+	})
 }
 
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {

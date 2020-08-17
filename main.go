@@ -38,6 +38,7 @@ func main() {
 		middleware.RequireAuth(config.AuthToken, http.HandlerFunc(s.createSuggestionHandler)),
 	).Methods(http.MethodPost, http.MethodOptions)
 
+	r.HandleFunc("/suggestions/{id}", s.deleteSuggestionHandler).Methods(http.MethodDelete)
 	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
 
