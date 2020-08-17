@@ -68,7 +68,6 @@ func (dest *DiscordDestination) SendEdit(suggestion *suggestions.Suggestion) (st
 }
 
 func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *discordgo.MessageEmbed {
-
 	content := suggestion.Content
 	humanFriendlyRealm, ok := realms[content.Realm]
 	if !ok {
@@ -100,7 +99,7 @@ func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *di
 		})
 	}
 	if dest.loggingChannel {
-		if len(suggestion.MessageID) > 0  {
+		if len(suggestion.MessageID) > 0 {
 			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 				Name:  "message id",
 				Value: suggestion.MessageID,
