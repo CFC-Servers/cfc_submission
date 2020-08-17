@@ -28,6 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	s := suggestionsServer{
 		suggestionsDest: discord.NewDest(config.SuggestionsChannel, false, discordgoSession),
 		loggingDest:     discord.NewDest(config.SuggestionsLoggingChannel, true, discordgoSession),
@@ -70,9 +71,8 @@ type suggestionsServer struct {
 }
 
 func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
 	var newSuggestionData map[string]string
-	json.Unmarshal(body, &newSuggestionData)
+	unmarshallBody(r, &newSuggestionData)
 
 	owner, _ := newSuggestionData["owner"]
 	if owner == "" {
@@ -105,7 +105,9 @@ func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.
 }
 
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
+	var suggestionContent suggestions.SuggestionContent
+	unmarshallBody(r, suggestionContent)
+
 	vars := mux.Vars(r)
 
 	suggestion, _ := s.Get(vars["id"])
@@ -114,19 +116,20 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	var suggestionContent suggestions.SuggestionContent
-	json.Unmarshal(body, &suggestionContent)
 	suggestion.Content = &suggestionContent
 
 	if suggestion.Sent {
 		_, err := s.suggestionsDest.SendEdit(suggestion)
 		if err != nil {
 			errorJsonResponse(w, http.StatusInternalServerError, "Couldnt send your suggestion")
-		} else {
-			s.loggingDest.Send(suggestion)
+			return
 		}
-		return
+		s.loggingDest.Send(suggestion)
+		jsonResponse(w, http.StatusOK, map[string]string{
+			"status": "success",
+		})
 
+		return
 	}
 
 	messageId, err := s.suggestionsDest.Send(suggestion)
@@ -154,4 +157,9 @@ func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
 func errorJsonResponse(w http.ResponseWriter, statusCode int, err string) {
 	obj := map[string]string{"error": err}
 	jsonResponse(w, statusCode, obj)
+}
+
+func unmarshallBody(r *http.Request, obj interface{}) {
+	data, _ := ioutil.ReadAll(r.Body)
+	json.Unmarshal(data, obj)
 }
