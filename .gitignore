@@ -1,3 +1,4 @@
 *.db
 cfc_suggestions_config.json
 .idea
+.cache
