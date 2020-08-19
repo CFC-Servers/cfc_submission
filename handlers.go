@@ -16,26 +16,21 @@ type suggestionsServer struct {
 }
 
 func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *http.Request) {
-	var newSuggestionData map[string]string
-	unmarshallBody(r, &newSuggestionData)
+	var newSuggestion suggestions.Suggestion
+	unmarshallBody(r, &newSuggestion)
 
-	owner, _ := newSuggestionData["owner"]
-	if owner == "" {
+	if newSuggestion.Owner == "" {
 		errorJsonResponse(w, http.StatusBadRequest, "Failed to provide an owner")
 		return
 	}
 
 	s.DeleteWhere(map[string]interface{}{
-		"owner": owner,
+		"owner": newSuggestion.Owner,
 		"sent":  true,
 	})
 
-	suggestion, err := s.Create(&suggestions.Suggestion{
-		Owner: owner,
-	})
-
+	suggestion, err := s.Create(&newSuggestion)
 	if err != nil {
-		log.Error(err)
 		errorJsonResponse(w, http.StatusInternalServerError, "Database error")
 		return
 	}
