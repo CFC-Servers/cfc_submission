@@ -65,5 +65,8 @@ func main() {
 
 	addr := *host + ":" + *port
 	log.Infof("Listening on %v", addr)
-	http.ListenAndServe(addr, r)
+	err = http.ListenAndServe(addr, r)
+	if err != nil {
+		log.Error(err)
+	}
 }
