@@ -40,7 +40,7 @@ func main() {
 
 	r.Handle(
 		"/suggestions",
-		http.HandlerFunc(s.indexSuggestionHandler),
+		middleware.RequireAuth(config.AuthToken, http.HandlerFunc(s.indexSuggestionHandler)),
 	).Methods(http.MethodGet)
 
 	r.HandleFunc("/suggestions/{id}", s.deleteSuggestionHandler).Methods(http.MethodDelete)

@@ -57,10 +57,6 @@ func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.
 	jsonResponse(w, http.StatusOK, foundSuggestions[0])
 }
 
-func booleanParamParser(s string) (interface{}, error) {
-	return strconv.ParseBool(s)
-}
-
 func (s *suggestionsServer) indexSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	params := getParams(r.URL.Query(), map[string]paramParserFunc{
 		"owner":      defaultParamParser,

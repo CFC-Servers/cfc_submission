@@ -5,6 +5,7 @@ import (
     "io/ioutil"
     "net/http"
     "net/url"
+    "strconv"
 )
 
 func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
@@ -41,4 +42,8 @@ func getParams(urlValues url.Values, permitted map[string]paramParserFunc) map[s
 }
 func defaultParamParser(s string) (interface{}, error) {
     return s, nil
+}
+
+func booleanParamParser(s string) (interface{}, error) {
+    return strconv.ParseBool(s)
 }
