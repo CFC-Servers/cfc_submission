@@ -4,8 +4,9 @@ type Suggestion struct {
 	Identifier string             `json:"identifier"`
 	Owner      string             `json:"owner"`
 	Sent       bool               `json:"sent"`
-	Content    *SuggestionContent `json:"content"`
 	MessageID  string             `json:"message_id"`
+	Content    *SuggestionContent `json:"content"`
+	CreatedAt  string             `json:"created_at"`
 }
 
 type SuggestionContent struct {
@@ -18,11 +19,10 @@ type SuggestionContent struct {
 }
 
 type SuggestionStore interface {
-	Create(owner string) (*Suggestion, error)
-	Get(identifier string) (*Suggestion, error)
-	Delete(identifier string) (error)
+	Create(suggestion *Suggestion) (*Suggestion, error)
+	GetWhere(map[string]interface{}) ([]*Suggestion, error)
+	DeleteWhere(map[string]interface{}) error
 	Update(suggestion *Suggestion) error
-	DeleteByOwner(owner string, onlyUnsent bool) error
 }
 
 type Destination interface {

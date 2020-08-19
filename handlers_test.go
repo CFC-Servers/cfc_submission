@@ -23,7 +23,8 @@ func TestHandlers(t *testing.T) {
 		},
 	}
 
-	newSuggestion, _ := server.Create("23701337384550")
+	newSuggestion, _ := server.Create(&suggestions.Suggestion{Owner: "23701337384550"})
+	newSuggestionForDelete, _ := server.Create(&suggestions.Suggestion{Owner: "237012337384550"})
 	r := mux.NewRouter()
 	r.HandleFunc("/suggestions", server.createSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/suggestions/{id}", server.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
@@ -94,6 +95,15 @@ func TestHandlers(t *testing.T) {
 			http.StatusNotFound,
 			map[string]string{"id": "13456"},
 		},
+		{
+			r,
+			"DELETE",
+			fmt.Sprintf("/suggestions/%v", newSuggestionForDelete.Identifier),
+			``,
+			map[string]string{},
+			http.StatusOK,
+			map[string]string{"id": newSuggestionForDelete.Identifier},
+		},
 	}
 
 	for _, data := range testData {
@@ -127,4 +137,4 @@ type DummyDest struct {
 
 func (*DummyDest) Send(*suggestions.Suggestion) (string, error)     { return "", nil }
 func (*DummyDest) SendEdit(*suggestions.Suggestion) (string, error) { return "", nil }
-func (*DummyDest) Delete(string) (error) { return nil }
+func (*DummyDest) Delete(string) error                              { return nil }

@@ -3,11 +3,9 @@ package sqlite
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
-	log "github.com/sirupsen/logrus"
 	"strings"
 )
 
@@ -27,7 +25,8 @@ func NewStore(file string) *SqliteSuggestionsStore {
 			owner TEXT NOT NULL,
 			sent SMALLINT NOT NULL DEFAULT 0,
 			message_id TEXT DEFAULT '',
-			content_json TEXT
+			content_json TEXT,
+			created_at NOT NULL DEFAULT current_timestamp
             
 		)`)
 	if err != nil {
@@ -38,11 +37,9 @@ func NewStore(file string) *SqliteSuggestionsStore {
 	}
 }
 
-func (store *SqliteSuggestionsStore) Create(owner string) (*suggestions.Suggestion, error) {
-	suggestion := suggestions.Suggestion{
-		Identifier: newIdentifier(),
-		Owner:      owner,
-		Sent:       false,
+func (store *SqliteSuggestionsStore) Create(suggestion *suggestions.Suggestion) (*suggestions.Suggestion, error) {
+	if suggestion.Identifier == "" {
+		suggestion.Identifier = newIdentifier()
 	}
 
 	_, err := store.db.Exec(
@@ -53,39 +50,40 @@ func (store *SqliteSuggestionsStore) Create(owner string) (*suggestions.Suggesti
 		return nil, err
 	}
 
-	return &suggestion, nil
+	return suggestion, nil
 }
-func (store *SqliteSuggestionsStore) Delete(identifier string) error {
-	query := "DELETE FROM cfc_suggestions WHERE identifier=?"
-	_, err := store.db.Exec(query, identifier)
+
+func (store *SqliteSuggestionsStore) DeleteWhere(conditions map[string]interface{}) error {
+	where, values := constructWhere(conditions)
+	query := "DELETE FROM cfc_suggestions" + where
+
+	_, err := store.db.Exec(query, values...)
 	return err
 }
 
-func (store *SqliteSuggestionsStore) DeleteByOwner(owner string, onlyUnsent bool) error {
-	query := "DELETE FROM cfc_suggestions WHERE owner=?"
-	if onlyUnsent == true {
-		query = query + " AND sent=0"
+func (store *SqliteSuggestionsStore) GetWhere(conditions map[string]interface{}) ([]*suggestions.Suggestion, error) {
+	where, values := constructWhere(conditions)
+	query := "SELECT * FROM cfc_suggestions" + where
+
+	rows, _ := store.db.Query(query, values...)
+	// TODO do something with errors
+
+	outputSuggestions := make([]*suggestions.Suggestion, 0)
+	for rows.Next() {
+		suggestion := suggestions.Suggestion{}
+		var contentJson []byte
+		var sentInt int
+
+		rows.Scan(&suggestion.Identifier, &suggestion.Owner, &sentInt, &suggestion.MessageID, &contentJson, &suggestion.CreatedAt)
+		if sentInt == 1 {
+			suggestion.Sent = true
+		}
+		json.Unmarshal(contentJson, &suggestion.Content)
+		outputSuggestions = append(outputSuggestions, &suggestion)
+
 	}
-	_, err := store.db.Exec(query, owner)
-	return err
-}
 
-func (store *SqliteSuggestionsStore) Get(identifier string) (*suggestions.Suggestion, error) {
-	suggestion := suggestions.Suggestion{}
-	row := store.db.QueryRow("SELECT * FROM cfc_suggestions WHERE identifier=?", identifier)
-
-	var contentJson []byte
-	var sentInt int
-	err := row.Scan(&suggestion.Identifier, &suggestion.Owner, &sentInt, &suggestion.MessageID, &contentJson)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	} else if err != nil {
-		log.Errorf("Database error: %v", err)
-	}
-	suggestion.Sent = sentInt != 0
-
-	json.Unmarshal(contentJson, &suggestion.Content)
-	return &suggestion, err
+	return outputSuggestions, nil
 }
 
 func (store *SqliteSuggestionsStore) Update(suggestion *suggestions.Suggestion) error {
@@ -105,4 +103,31 @@ func (store *SqliteSuggestionsStore) Update(suggestion *suggestions.Suggestion) 
 
 func newIdentifier() string {
 	return strings.ReplaceAll(uuid.New().String(), "-", "")
+}
+
+func constructWhere(conditions map[string]interface{}) (string, []interface{}) {
+	var queryBuilder strings.Builder
+	var values []interface{}
+	firstCondition := true
+	for column, value := range conditions {
+		if valueBool, ok := value.(bool); ok {
+			if valueBool {
+				value = 1
+			} else {
+				value = 0
+			}
+		}
+
+		if firstCondition {
+			firstCondition = false
+			queryBuilder.WriteString(" WHERE ")
+		} else {
+			queryBuilder.WriteString(" AND ")
+		}
+		queryBuilder.WriteString(column)
+		queryBuilder.WriteString("=?")
+		values = append(values, value)
+
+	}
+	return queryBuilder.String(), values
 }

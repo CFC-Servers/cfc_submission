@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type suggestionsServer struct {
@@ -27,9 +26,15 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	s.DeleteByOwner(owner, true)
+	s.DeleteWhere(map[string]interface{}{
+		"owner": owner,
+		"sent":  true,
+	})
 
-	suggestion, err := s.Create(owner)
+	suggestion, err := s.Create(&suggestions.Suggestion{
+		Owner: owner,
+	})
+
 	if err != nil {
 		log.Error(err)
 		errorJsonResponse(w, http.StatusInternalServerError, "Database error")
@@ -41,24 +46,49 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 
 func (s *suggestionsServer) getSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	suggestion, _ := s.Get(vars["id"])
-	if suggestion == nil {
+	foundSuggestions, _ := s.GetWhere(map[string]interface{}{
+		"identifier": vars["id"],
+	})
+
+	if len(foundSuggestions) == 0 {
 		errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
-	jsonResponse(w, http.StatusOK, suggestion)
+	jsonResponse(w, http.StatusOK, foundSuggestions[0])
+}
+
+func booleanParamParser(s string) (interface{}, error) {
+	return strconv.ParseBool(s)
+}
+
+func (s *suggestionsServer) indexSuggestionHandler(w http.ResponseWriter, r *http.Request) {
+	params := getParams(r.URL.Query(), map[string]paramParserFunc{
+		"owner":      defaultParamParser,
+		"sent":       booleanParamParser,
+		"message_id": defaultParamParser,
+	})
+
+	outputSuggestions, _ := s.GetWhere(params)
+
+	jsonResponse(w, http.StatusOK, outputSuggestions)
 }
 
 func (s *suggestionsServer) deleteSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	suggestion, _ := s.Get(vars["id"])
-	if suggestion == nil {
+	suggestionsForDelete, _ := s.GetWhere(map[string]interface{}{
+		"identifier": vars["id"],
+	})
+	if len(suggestionsForDelete) == 0 {
 		errorJsonResponse(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
+	suggestion := suggestionsForDelete[0]
 
 	s.suggestionsDest.Delete(suggestion.MessageID)
-	err := s.Delete(suggestion.Identifier)
+	err := s.DeleteWhere(map[string]interface{}{
+		"identifier": suggestion.Identifier,
+	})
+
 	if err != nil {
 		log.Errorf("Database error %v", err)
 		errorJsonResponse(w, http.StatusInternalServerError, "Database error")
@@ -76,11 +106,14 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 
 	vars := mux.Vars(r)
 
-	suggestion, _ := s.Get(vars["id"])
-	if suggestion == nil {
+	foundSuggestions, _ := s.GetWhere(map[string]interface{}{
+		"identifier": vars["id"],
+	})
+	if len(foundSuggestions) == 0 {
 		errorJsonResponse(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
+	suggestion := foundSuggestions[0]
 
 	suggestion.Content = &suggestionContent
 
@@ -112,20 +145,4 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	jsonResponse(w, http.StatusOK, map[string]string{
 		"status": "success",
 	})
-}
-
-func jsonResponse(w http.ResponseWriter, statusCode int, obj interface{}) {
-	jsonData, _ := json.Marshal(obj)
-	w.WriteHeader(statusCode)
-	w.Write(jsonData)
-}
-
-func errorJsonResponse(w http.ResponseWriter, statusCode int, err string) {
-	obj := map[string]string{"error": err}
-	jsonResponse(w, statusCode, obj)
-}
-
-func unmarshallBody(r *http.Request, obj interface{}) {
-	data, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(data, obj)
 }
