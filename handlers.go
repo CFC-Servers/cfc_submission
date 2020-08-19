@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"strconv"
 )
 
 type suggestionsServer struct {

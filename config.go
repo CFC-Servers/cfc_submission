@@ -12,6 +12,8 @@ type suggestionsConfig struct {
 	SuggestionsLoggingChannel string `json:"suggestions_logging_channel"`
 	AuthToken                 string `json:"auth_token"`
 	BotToken                  string `json:"bot_token"`
+	IgnoreAuth                bool   `json:"ignore_auth"`
+	LogSql                    bool   `json:"log_sql"`
 }
 
 func loadConfig(filename string) *suggestionsConfig {

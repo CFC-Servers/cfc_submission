@@ -6,11 +6,13 @@ import (
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
+	log "github.com/sirupsen/logrus"
 	"strings"
 )
 
 type SqliteSuggestionsStore struct {
-	db *sql.DB
+	db         *sql.DB
+	LogQueries bool
 }
 
 func NewStore(file string) *SqliteSuggestionsStore {
@@ -42,9 +44,9 @@ func (store *SqliteSuggestionsStore) Create(suggestion *suggestions.Suggestion) 
 		suggestion.Identifier = newIdentifier()
 	}
 
-	_, err := store.db.Exec(
+	_, err := store.exec(
 		"INSERT INTO cfc_suggestions(identifier, owner) VALUES(?, ?)",
-		suggestion.Identifier, suggestion.Owner, false)
+		suggestion.Identifier, suggestion.Owner)
 
 	if err != nil {
 		return nil, err
@@ -57,18 +59,20 @@ func (store *SqliteSuggestionsStore) DeleteWhere(conditions map[string]interface
 	where, values := constructWhere(conditions)
 	query := "DELETE FROM cfc_suggestions" + where
 
-	_, err := store.db.Exec(query, values...)
+	_, err := store.exec(query, values...)
 	return err
 }
 
 func (store *SqliteSuggestionsStore) GetWhere(conditions map[string]interface{}) ([]*suggestions.Suggestion, error) {
+	outputSuggestions := make([]*suggestions.Suggestion, 0)
+
 	where, values := constructWhere(conditions)
 	query := "SELECT * FROM cfc_suggestions" + where
+	rows, err := store.query(query, values...)
+	if err != nil {
+		return outputSuggestions, err
+	}
 
-	rows, _ := store.db.Query(query, values...)
-	// TODO do something with errors
-
-	outputSuggestions := make([]*suggestions.Suggestion, 0)
 	for rows.Next() {
 		suggestion := suggestions.Suggestion{}
 		var contentJson []byte
@@ -93,12 +97,34 @@ func (store *SqliteSuggestionsStore) Update(suggestion *suggestions.Suggestion) 
 		sentInt = 1
 	}
 
-	_, err := store.db.Exec(
+	_, err := store.exec(
 		"UPDATE cfc_suggestions SET content_json=?, sent=?, message_id=? WHERE identifier=?",
 		contentJson, sentInt, suggestion.MessageID, suggestion.Identifier,
 	)
 
 	return err
+}
+
+func (store *SqliteSuggestionsStore) query(query string, args ...interface{}) (*sql.Rows, error) {
+	if store.LogQueries {
+		log.Infof("Sqlite query: \"%v\"  %v", query, args)
+	}
+	out, err := store.db.Query(query, args...)
+	if err != nil {
+		log.Info("Query errored: %v", err)
+	}
+	return out, err
+}
+
+func (store *SqliteSuggestionsStore) exec(query string, args ...interface{}) (sql.Result, error) {
+	if store.LogQueries {
+		log.Infof("Sqlite query: \"%v\"  %v", query, args)
+	}
+	out, err := store.db.Exec(query, args...)
+	if err != nil {
+		log.Info("Query errored: %v", err)
+	}
+	return out, err
 }
 
 func newIdentifier() string {
