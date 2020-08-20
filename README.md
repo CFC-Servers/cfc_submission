@@ -1,6 +1,6 @@
 # CFC Suggestions
 Backend API for CFC Suggestions
-Temporary4
+
 ## endpoints
 - `POST /suggestions` 
 
