@@ -8,6 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 type SqliteSuggestionsStore struct {
@@ -28,7 +29,7 @@ func NewStore(file string) *SqliteSuggestionsStore {
 			sent SMALLINT NOT NULL DEFAULT 0,
 			message_id TEXT DEFAULT '',
 			content_json TEXT,
-			created_at TEXT
+			created_at INTEGER DEFAULT 0
         )
 	`)
 	if err != nil {
@@ -43,10 +44,11 @@ func (store *SqliteSuggestionsStore) Create(suggestion *suggestions.Suggestion) 
 	if suggestion.Identifier == "" {
 		suggestion.Identifier = newIdentifier()
 	}
+	suggestion.CreatedAt = time.Now()
 
 	_, err := store.exec(
-		"INSERT INTO cfc_suggestions(identifier, owner, created_at) VALUES(?, ?, current_timestamp)",
-		suggestion.Identifier, suggestion.Owner)
+		"INSERT INTO cfc_suggestions(identifier, owner, created_at) VALUES(?, ?, ?)",
+		suggestion.Identifier, suggestion.Owner, suggestion.CreatedAt.Unix())
 
 	if err != nil {
 		return nil, err
@@ -66,25 +68,21 @@ func (store *SqliteSuggestionsStore) DeleteWhere(conditions map[string]interface
 func (store *SqliteSuggestionsStore) GetWhere(conditions map[string]interface{}) ([]*suggestions.Suggestion, error) {
 	outputSuggestions := make([]*suggestions.Suggestion, 0)
 
-	where, values := constructWhere(conditions)
+	after, _ := conditions["after"].(int64)
+	delete(conditions, "after")
+
+	where, values := constructWhere(conditions, "created_at>?")
+	values = append(values, after)
+
 	query := "SELECT * FROM cfc_suggestions" + where
+
 	rows, err := store.query(query, values...)
 	if err != nil {
 		return outputSuggestions, err
 	}
 
 	for rows.Next() {
-		suggestion := suggestions.Suggestion{}
-		var contentJson []byte
-		var sentInt int
-
-		rows.Scan(&suggestion.Identifier, &suggestion.Owner, &sentInt, &suggestion.MessageID, &contentJson, &suggestion.CreatedAt)
-		if sentInt == 1 {
-			suggestion.Sent = true
-		}
-		json.Unmarshal(contentJson, &suggestion.Content)
-		outputSuggestions = append(outputSuggestions, &suggestion)
-
+		outputSuggestions = append(outputSuggestions, scanIntoSuggestion(rows))
 	}
 
 	return outputSuggestions, nil
@@ -127,11 +125,25 @@ func (store *SqliteSuggestionsStore) exec(query string, args ...interface{}) (sq
 	return out, err
 }
 
+func scanIntoSuggestion(rows *sql.Rows) *suggestions.Suggestion {
+	suggestion := suggestions.Suggestion{}
+	var contentJson []byte
+	var sentInt int
+	var createdAt int64
+	rows.Scan(&suggestion.Identifier, &suggestion.Owner, &sentInt, &suggestion.MessageID, &contentJson, createdAt)
+	suggestion.CreatedAt = time.Unix(createdAt, 0)
+	if sentInt == 1 {
+		suggestion.Sent = true
+	}
+	json.Unmarshal(contentJson, &suggestion.Content)
+	return &suggestion
+}
+
 func newIdentifier() string {
 	return strings.ReplaceAll(uuid.New().String(), "-", "")
 }
 
-func constructWhere(conditions map[string]interface{}) (string, []interface{}) {
+func constructWhere(conditions map[string]interface{}, extraConditions ...string) (string, []interface{}) {
 	var queryBuilder strings.Builder
 	var values []interface{}
 	firstCondition := true
@@ -155,5 +167,16 @@ func constructWhere(conditions map[string]interface{}) (string, []interface{}) {
 		values = append(values, value)
 
 	}
+
+	for _, condition := range extraConditions {
+		if firstCondition {
+			firstCondition = false
+			queryBuilder.WriteString(" WHERE ")
+		} else {
+			queryBuilder.WriteString(" AND ")
+		}
+		queryBuilder.WriteString(condition)
+	}
+
 	return queryBuilder.String(), values
 }

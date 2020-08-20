@@ -26,7 +26,7 @@ func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *ht
 
 	s.DeleteWhere(map[string]interface{}{
 		"owner": newSuggestion.Owner,
-		"sent":  true,
+		"sent":  false,
 	})
 
 	suggestion, err := s.Create(&newSuggestion)
@@ -56,6 +56,7 @@ func (s *suggestionsServer) indexSuggestionHandler(w http.ResponseWriter, r *htt
 		"owner":      defaultParamParser,
 		"sent":       booleanParamParser,
 		"message_id": defaultParamParser,
+		"after":      int64ParamParse,
 	})
 
 	outputSuggestions, _ := s.GetWhere(params)

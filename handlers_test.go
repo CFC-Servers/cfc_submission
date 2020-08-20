@@ -23,8 +23,11 @@ func TestHandlers(t *testing.T) {
 		},
 	}
 
-	newSuggestion, _ := server.Create(&suggestions.Suggestion{Owner: "23701337384550"})
-	newSuggestionForDelete, _ := server.Create(&suggestions.Suggestion{Owner: "237012337384550"})
+	owner1 := "23701337384550"
+	owner2 := "247012337384550"
+
+	newSuggestion, _ := server.Create(&suggestions.Suggestion{Owner: owner1})
+	newSuggestionForDelete, _ := server.Create(&suggestions.Suggestion{Owner: owner2})
 	r := mux.NewRouter()
 	r.HandleFunc("/suggestions", server.createSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/suggestions/{id}", server.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)

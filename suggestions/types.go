@@ -1,12 +1,14 @@
 package suggestions
 
+import "time"
+
 type Suggestion struct {
 	Identifier string             `json:"identifier"`
 	Owner      string             `json:"owner"`
 	Sent       bool               `json:"sent"`
 	MessageID  string             `json:"message_id"`
 	Content    *SuggestionContent `json:"content"`
-	CreatedAt  string             `json:"created_at"`
+	CreatedAt  time.Time          `json:"created_at"`
 }
 
 type SuggestionContent struct {

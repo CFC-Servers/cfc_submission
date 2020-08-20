@@ -47,3 +47,7 @@ func defaultParamParser(s string) (interface{}, error) {
 func booleanParamParser(s string) (interface{}, error) {
 	return strconv.ParseBool(s)
 }
+
+func int64ParamParse(s string) (interface{}, error) {
+	return strconv.ParseInt(s, 10, 64)
+}
