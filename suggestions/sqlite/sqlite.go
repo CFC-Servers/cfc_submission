@@ -21,16 +21,16 @@ func NewStore(file string) *SqliteSuggestionsStore {
 		panic(err)
 	}
 
-	_, err = db.Exec(
-		`CREATE TABLE IF NOT EXISTS cfc_suggestions(
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS cfc_suggestions(
 			identifier TEXT NOT NULL PRIMARY KEY, 
 			owner TEXT NOT NULL,
 			sent SMALLINT NOT NULL DEFAULT 0,
 			message_id TEXT DEFAULT '',
 			content_json TEXT,
-			created_at NOT NULL DEFAULT current_timestamp
-            
-		)`)
+			created_at TEXT
+        )
+	`)
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +45,7 @@ func (store *SqliteSuggestionsStore) Create(suggestion *suggestions.Suggestion) 
 	}
 
 	_, err := store.exec(
-		"INSERT INTO cfc_suggestions(identifier, owner) VALUES(?, ?)",
+		"INSERT INTO cfc_suggestions(identifier, owner, created_at) VALUES(?, ?, current_timestamp)",
 		suggestion.Identifier, suggestion.Owner)
 
 	if err != nil {
