@@ -42,3 +42,6 @@ Temporary4
         "owner": "179237013373845504"
     }
     ```
+    
+- GET /suggestions
+    
