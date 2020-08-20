@@ -40,7 +40,6 @@ func TestHandlers(t *testing.T) {
 		body           string
 		expectedValues map[string]string
 		expectedStatus int
-		urlVars        map[string]string
 	}{
 		{
 			r,
@@ -51,7 +50,6 @@ func TestHandlers(t *testing.T) {
 				"owner": "179237013373845504",
 			},
 			http.StatusCreated,
-			map[string]string{},
 		},
 		{
 			r,
@@ -60,7 +58,6 @@ func TestHandlers(t *testing.T) {
 			`{"owner": ""}`,
 			map[string]string{},
 			http.StatusBadRequest,
-			map[string]string{},
 		},
 		{
 			r,
@@ -69,7 +66,6 @@ func TestHandlers(t *testing.T) {
 			``,
 			map[string]string{},
 			http.StatusBadRequest,
-			map[string]string{},
 		},
 		{
 			r,
@@ -78,7 +74,6 @@ func TestHandlers(t *testing.T) {
 			``,
 			map[string]string{},
 			http.StatusOK,
-			map[string]string{"id": newSuggestion.Identifier},
 		},
 		{
 			r,
@@ -87,7 +82,6 @@ func TestHandlers(t *testing.T) {
 			``,
 			map[string]string{},
 			http.StatusNotFound,
-			map[string]string{"id": "13456"},
 		},
 		{
 			r,
@@ -96,7 +90,6 @@ func TestHandlers(t *testing.T) {
 			``,
 			map[string]string{},
 			http.StatusNotFound,
-			map[string]string{"id": "13456"},
 		},
 		{
 			r,
@@ -105,7 +98,6 @@ func TestHandlers(t *testing.T) {
 			``,
 			map[string]string{},
 			http.StatusOK,
-			map[string]string{"id": newSuggestionForDelete.Identifier},
 		},
 	}
 
@@ -115,7 +107,6 @@ func TestHandlers(t *testing.T) {
 			body := data.body
 			bodyReader := bytes.NewReader([]byte(body))
 			request := httptest.NewRequest(data.method, data.endpoint, bodyReader)
-			mux.SetURLVars(request, data.urlVars)
 			data.handler.ServeHTTP(recorder, request)
 
 			bodyBytes, _ := ioutil.ReadAll(recorder.Body)
