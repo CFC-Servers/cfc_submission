@@ -111,7 +111,7 @@ func (store *SqliteSuggestionsStore) query(query string, args ...interface{}) (*
 	}
 	out, err := store.db.Query(query, args...)
 	if err != nil {
-		log.Info("Query errored: %v", err)
+		log.Infof("Query errored: %v", err)
 	}
 	return out, err
 }
@@ -122,7 +122,7 @@ func (store *SqliteSuggestionsStore) exec(query string, args ...interface{}) (sq
 	}
 	out, err := store.db.Exec(query, args...)
 	if err != nil {
-		log.Info("Query errored: %v", err)
+		log.Infof("Query errored: %v", err)
 	}
 	return out, err
 }
