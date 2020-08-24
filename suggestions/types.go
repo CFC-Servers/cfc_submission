@@ -13,10 +13,10 @@ type Suggestion struct {
 
 type SuggestionContent struct {
 	Realm     string `json:"realm"`
-	Link      string `json:"link"`
-	Title     string `json:"title"`
-	Why       string `json:"why"`
-	WhyNot    string `json:"whyNot"`
+	Link      string `json:"link" length:"0-124"`
+	Title     string `json:"title" length:"6-124"`
+	Why       string `json:"why" length:"18-1024"`
+	WhyNot    string `json:"whyNot" length:"18-1024"`
 	Anonymous bool   `json:"anonymous"`
 }
 

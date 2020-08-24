@@ -94,6 +94,11 @@ func (s *suggestionsServer) deleteSuggestionHandler(w http.ResponseWriter, r *ht
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	var suggestionContent suggestions.SuggestionContent
 	unmarshallBody(r, &suggestionContent)
+	isValidContent, reason := suggestions.ValidateFieldLengths(suggestionContent)
+	if !isValidContent {
+		errorJsonResponse(w, http.StatusBadRequest, reason)
+		return
+	}
 
 	vars := mux.Vars(r)
 
