@@ -11,7 +11,9 @@ func ValidateFieldLengths(obj interface{}) (bool, string) {
 	t := reflect.ValueOf(obj)
 	for i := 0; i < t.NumField(); i++ {
 		fieldValue, ok := t.Field(i).Interface().(string)
-		if !ok { continue }
+		if !ok {
+			continue
+		}
 
 		field := t.Type().Field(i)
 
