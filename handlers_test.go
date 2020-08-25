@@ -127,4 +127,4 @@ type DummyDest struct {
 
 func (*DummyDest) Send(*suggestions.Suggestion) (string, error)     { return "", nil }
 func (*DummyDest) SendEdit(*suggestions.Suggestion) (string, error) { return "", nil }
-func (*DummyDest) Delete(string) (error) { return nil }
+func (*DummyDest) Delete(string) error                              { return nil }

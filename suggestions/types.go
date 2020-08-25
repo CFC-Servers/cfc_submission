@@ -1,5 +1,7 @@
 package suggestions
 
+import "errors"
+
 type Suggestion struct {
 	Identifier string             `json:"identifier"`
 	Owner      string             `json:"owner"`
@@ -20,10 +22,12 @@ type SuggestionContent struct {
 type SuggestionStore interface {
 	Create(owner string) (*Suggestion, error)
 	Get(identifier string) (*Suggestion, error)
-	Delete(identifier string) (error)
+	Delete(identifier string) error
 	Update(suggestion *Suggestion) error
 	DeleteByOwner(owner string, onlyUnsent bool) error
 }
+
+var ErrMessageNotFound = errors.New("Message not found")
 
 type Destination interface {
 	Send(suggestion *Suggestion) (messageId string, err error)
