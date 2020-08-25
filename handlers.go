@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 type suggestionsServer struct {
@@ -70,11 +71,15 @@ func (s *suggestionsServer) deleteSuggestionHandler(w http.ResponseWriter, r *ht
 	})
 }
 
+var sendMutex sync.Mutex
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	var suggestionContent suggestions.SuggestionContent
 	unmarshallBody(r, &suggestionContent)
 
 	vars := mux.Vars(r)
+
+	sendMutex.Lock()
+	defer sendMutex.Unlock()
 
 	suggestion, _ := s.Get(vars["id"])
 	if suggestion == nil {
