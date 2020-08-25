@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 	"time"
 )
 
@@ -62,8 +63,13 @@ func (dest *DiscordDestination) SendEdit(suggestion *suggestions.Suggestion) (st
 	}
 
 	message, err := dest.session.ChannelMessageEditEmbed(dest.channelId, suggestion.MessageID, embed)
+	var restError *discordgo.RESTError
 
 	if err != nil {
+		if errors.As(err, &restError) && restError.Response.StatusCode == http.StatusNotFound {
+			return "", suggestions.ErrMessageNotFound
+		}
+
 		err = fmt.Errorf("Error sending destination: %w", err)
 		log.Error(err)
 		return "", err
@@ -96,11 +102,12 @@ func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *di
 			},
 		},
 	}
+
 	ownerUser, _ := dest.session.User(suggestion.Owner)
 	if !content.Anonymous && ownerUser != nil {
 		embed.Author = &discordgo.MessageEmbedAuthor{
-			Name:        ownerUser.String(),
-			IconURL:     ownerUser.AvatarURL("1024"),
+			Name:    ownerUser.String(),
+			IconURL: ownerUser.AvatarURL("1024"),
 		}
 	}
 

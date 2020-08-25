@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -72,6 +73,7 @@ func (s *suggestionsServer) deleteSuggestionHandler(w http.ResponseWriter, r *ht
 }
 
 var sendMutex sync.Mutex
+
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	var suggestionContent suggestions.SuggestionContent
 	unmarshallBody(r, &suggestionContent)
@@ -92,6 +94,9 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 	if suggestion.Sent {
 		_, err := s.suggestionsDest.SendEdit(suggestion)
 		if err != nil {
+			if errors.Is(err, suggestions.ErrMessageNotFound) {
+				s.Delete(suggestion.Identifier)
+			}
 			errorJsonResponse(w, http.StatusInternalServerError, "Couldnt send your suggestion")
 			return
 		}
