@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"sync"
 )
 
 type suggestionsServer struct {
@@ -91,6 +92,7 @@ func (s *suggestionsServer) deleteSuggestionHandler(w http.ResponseWriter, r *ht
 	})
 }
 
+var sendMutex sync.Mutex
 func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http.Request) {
 	var suggestionContent suggestions.SuggestionContent
 	unmarshallBody(r, &suggestionContent)
@@ -102,10 +104,15 @@ func (s *suggestionsServer) sendSuggestionHandler(w http.ResponseWriter, r *http
 
 	vars := mux.Vars(r)
 
+	sendMutex.Lock()
+	defer sendMutex.Unlock()
+  
 	foundSuggestions, _ := s.GetWhere(map[string]interface{}{
 		"identifier": vars["id"],
 	})
+  
 	if len(foundSuggestions) == 0 {
+
 		errorJsonResponse(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}

@@ -96,7 +96,15 @@ func (dest *DiscordDestination) getEmbed(suggestion *suggestions.Suggestion) *di
 			},
 		},
 	}
-	if dest.loggingChannel || !content.Anonymous {
+	ownerUser, _ := dest.session.User(suggestion.Owner)
+	if !content.Anonymous && ownerUser != nil {
+		embed.Author = &discordgo.MessageEmbedAuthor{
+			Name:        ownerUser.String(),
+			IconURL:     ownerUser.AvatarURL("1024"),
+		}
+	}
+
+	if dest.loggingChannel {
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 			Name:   "Author",
 			Value:  fmt.Sprintf("<@!%v>", suggestion.Owner),
