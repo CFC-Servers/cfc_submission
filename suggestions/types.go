@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 type Suggestion struct {
 	Identifier string             `json:"identifier"`
 	Owner      string             `json:"owner"`
