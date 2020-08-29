@@ -1,6 +1,10 @@
 package suggestions
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
 
 type Suggestion struct {
 	Identifier string             `json:"identifier"`
@@ -26,6 +30,8 @@ type SuggestionStore interface {
 	DeleteWhere(map[string]interface{}) error
 	Update(suggestion *Suggestion) error
 }
+
+var ErrMessageNotFound = errors.New("Message not found")
 
 type Destination interface {
 	Send(suggestion *Suggestion) (messageId string, err error)
