@@ -24,19 +24,29 @@ func main() {
 		panic(err)
 	}
 
+	sqliteStore := sqlite.NewStore(config.Database)
+	sqliteStore.LogQueries = config.LogSql
 	s := suggestionsServer{
 		suggestionsDest: discord.NewDest(config.SuggestionsChannel, false, discordgoSession),
 		loggingDest:     discord.NewDest(config.SuggestionsLoggingChannel, true, discordgoSession),
-		SuggestionStore: sqlite.NewStore(config.Database),
+		SuggestionStore: sqliteStore,
 		config:          config,
 	}
 
 	r := mux.NewRouter()
 
-	r.Handle(
-		"/suggestions",
-		middleware.RequireAuth(config.AuthToken, http.HandlerFunc(s.createSuggestionHandler)),
-	).Methods(http.MethodPost, http.MethodOptions)
+	var createSuggestionsHandler http.Handler = http.HandlerFunc(s.createSuggestionHandler)
+	var indexSuggestionsHandler http.Handler = http.HandlerFunc(s.indexSuggestionHandler)
+
+	if config.IgnoreAuth {
+		log.Warning("RUNNING WITHOUT AUTHENTICATION!!!")
+	} else {
+		createSuggestionsHandler = middleware.RequireAuth(config.AuthToken, createSuggestionsHandler)
+		indexSuggestionsHandler = middleware.RequireAuth(config.AuthToken, indexSuggestionsHandler)
+	}
+
+	r.Handle("/suggestions", createSuggestionsHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/suggestions", indexSuggestionsHandler).Methods(http.MethodGet)
 
 	r.HandleFunc("/suggestions/{id}", s.deleteSuggestionHandler).Methods(http.MethodDelete)
 	r.HandleFunc("/suggestions/{id}/send", s.sendSuggestionHandler).Methods(http.MethodPost, http.MethodOptions)
@@ -55,5 +65,8 @@ func main() {
 
 	addr := *host + ":" + *port
 	log.Infof("Listening on %v", addr)
-	http.ListenAndServe(addr, r)
+	err = http.ListenAndServe(addr, r)
+	if err != nil {
+		log.Error(err)
+	}
 }

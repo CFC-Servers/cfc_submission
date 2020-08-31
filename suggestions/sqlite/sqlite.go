@@ -3,16 +3,17 @@ package sqlite
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 type SqliteSuggestionsStore struct {
-	db *sql.DB
+	db         *sql.DB
+	LogQueries bool
 }
 
 func NewStore(file string) *SqliteSuggestionsStore {
@@ -21,15 +22,16 @@ func NewStore(file string) *SqliteSuggestionsStore {
 		panic(err)
 	}
 
-	_, err = db.Exec(
-		`CREATE TABLE IF NOT EXISTS cfc_suggestions(
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS cfc_suggestions(
 			identifier TEXT NOT NULL PRIMARY KEY, 
 			owner TEXT NOT NULL,
 			sent SMALLINT NOT NULL DEFAULT 0,
 			message_id TEXT DEFAULT '',
-			content_json TEXT
-            
-		)`)
+			content_json TEXT,
+			created_at INTEGER DEFAULT 0
+        )
+	`)
 	if err != nil {
 		panic(err)
 	}
@@ -38,54 +40,52 @@ func NewStore(file string) *SqliteSuggestionsStore {
 	}
 }
 
-func (store *SqliteSuggestionsStore) Create(owner string) (*suggestions.Suggestion, error) {
-	suggestion := suggestions.Suggestion{
-		Identifier: newIdentifier(),
-		Owner:      owner,
-		Sent:       false,
+func (store *SqliteSuggestionsStore) Create(suggestion *suggestions.Suggestion) (*suggestions.Suggestion, error) {
+	if suggestion.Identifier == "" {
+		suggestion.Identifier = newIdentifier()
 	}
+	suggestion.CreatedAt = time.Now()
 
-	_, err := store.db.Exec(
-		"INSERT INTO cfc_suggestions(identifier, owner) VALUES(?, ?)",
-		suggestion.Identifier, suggestion.Owner, false)
+	_, err := store.exec(
+		"INSERT INTO cfc_suggestions(identifier, owner, created_at) VALUES(?, ?, ?)",
+		suggestion.Identifier, suggestion.Owner, suggestion.CreatedAt.Unix())
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &suggestion, nil
+	return suggestion, nil
 }
-func (store *SqliteSuggestionsStore) Delete(identifier string) error {
-	query := "DELETE FROM cfc_suggestions WHERE identifier=?"
-	_, err := store.db.Exec(query, identifier)
+
+func (store *SqliteSuggestionsStore) DeleteWhere(conditions map[string]interface{}) error {
+	where, values := constructWhere(conditions)
+	query := "DELETE FROM cfc_suggestions" + where
+
+	_, err := store.exec(query, values...)
 	return err
 }
 
-func (store *SqliteSuggestionsStore) DeleteByOwner(owner string, onlyUnsent bool) error {
-	query := "DELETE FROM cfc_suggestions WHERE owner=?"
-	if onlyUnsent == true {
-		query = query + " AND sent=0"
+func (store *SqliteSuggestionsStore) GetWhere(conditions map[string]interface{}) ([]*suggestions.Suggestion, error) {
+	outputSuggestions := make([]*suggestions.Suggestion, 0)
+
+	after, _ := conditions["after"].(int64)
+	delete(conditions, "after")
+
+	where, values := constructWhere(conditions, "created_at>?")
+	values = append(values, after)
+
+	query := "SELECT * FROM cfc_suggestions" + where
+
+	rows, err := store.query(query, values...)
+	if err != nil {
+		return outputSuggestions, err
 	}
-	_, err := store.db.Exec(query, owner)
-	return err
-}
 
-func (store *SqliteSuggestionsStore) Get(identifier string) (*suggestions.Suggestion, error) {
-	suggestion := suggestions.Suggestion{}
-	row := store.db.QueryRow("SELECT * FROM cfc_suggestions WHERE identifier=?", identifier)
-
-	var contentJson []byte
-	var sentInt int
-	err := row.Scan(&suggestion.Identifier, &suggestion.Owner, &sentInt, &suggestion.MessageID, &contentJson)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	} else if err != nil {
-		log.Errorf("Database error: %v", err)
+	for rows.Next() {
+		outputSuggestions = append(outputSuggestions, scanIntoSuggestion(rows))
 	}
-	suggestion.Sent = sentInt != 0
 
-	json.Unmarshal(contentJson, &suggestion.Content)
-	return &suggestion, err
+	return outputSuggestions, nil
 }
 
 func (store *SqliteSuggestionsStore) Update(suggestion *suggestions.Suggestion) error {
@@ -95,7 +95,7 @@ func (store *SqliteSuggestionsStore) Update(suggestion *suggestions.Suggestion) 
 		sentInt = 1
 	}
 
-	_, err := store.db.Exec(
+	_, err := store.exec(
 		"UPDATE cfc_suggestions SET content_json=?, sent=?, message_id=? WHERE identifier=?",
 		contentJson, sentInt, suggestion.MessageID, suggestion.Identifier,
 	)
@@ -103,6 +103,80 @@ func (store *SqliteSuggestionsStore) Update(suggestion *suggestions.Suggestion) 
 	return err
 }
 
+func (store *SqliteSuggestionsStore) query(query string, args ...interface{}) (*sql.Rows, error) {
+	if store.LogQueries {
+		log.Infof("Sqlite query: \"%v\"  %v", query, args)
+	}
+	out, err := store.db.Query(query, args...)
+	if err != nil {
+		log.Infof("Query errored: %v", err)
+	}
+	return out, err
+}
+
+func (store *SqliteSuggestionsStore) exec(query string, args ...interface{}) (sql.Result, error) {
+	if store.LogQueries {
+		log.Infof("Sqlite query: \"%v\"  %v", query, args)
+	}
+	out, err := store.db.Exec(query, args...)
+	if err != nil {
+		log.Infof("Query errored: %v", err)
+	}
+	return out, err
+}
+
+func scanIntoSuggestion(rows *sql.Rows) *suggestions.Suggestion {
+	suggestion := suggestions.Suggestion{}
+	var contentJson []byte
+	var sentInt int
+	var createdAt int64
+	rows.Scan(&suggestion.Identifier, &suggestion.Owner, &sentInt, &suggestion.MessageID, &contentJson, createdAt)
+	suggestion.CreatedAt = time.Unix(createdAt, 0)
+	if sentInt == 1 {
+		suggestion.Sent = true
+	}
+	json.Unmarshal(contentJson, &suggestion.Content)
+	return &suggestion
+}
+
 func newIdentifier() string {
 	return strings.ReplaceAll(uuid.New().String(), "-", "")
+}
+
+func constructWhere(conditions map[string]interface{}, extraConditions ...string) (string, []interface{}) {
+	var queryBuilder strings.Builder
+	var values []interface{}
+	firstCondition := true
+	for column, value := range conditions {
+		if valueBool, ok := value.(bool); ok {
+			if valueBool {
+				value = 1
+			} else {
+				value = 0
+			}
+		}
+
+		if firstCondition {
+			firstCondition = false
+			queryBuilder.WriteString(" WHERE ")
+		} else {
+			queryBuilder.WriteString(" AND ")
+		}
+		queryBuilder.WriteString(column)
+		queryBuilder.WriteString("=?")
+		values = append(values, value)
+
+	}
+
+	for _, condition := range extraConditions {
+		if firstCondition {
+			firstCondition = false
+			queryBuilder.WriteString(" WHERE ")
+		} else {
+			queryBuilder.WriteString(" AND ")
+		}
+		queryBuilder.WriteString(condition)
+	}
+
+	return queryBuilder.String(), values
 }

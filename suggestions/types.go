@@ -1,30 +1,33 @@
 package suggestions
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type Suggestion struct {
 	Identifier string             `json:"identifier"`
 	Owner      string             `json:"owner"`
 	Sent       bool               `json:"sent"`
-	Content    *SuggestionContent `json:"content"`
 	MessageID  string             `json:"message_id"`
+	Content    *SuggestionContent `json:"content"`
+	CreatedAt  time.Time          `json:"created_at"`
 }
 
 type SuggestionContent struct {
 	Realm     string `json:"realm"`
-	Link      string `json:"link"`
-	Title     string `json:"title"`
-	Why       string `json:"why"`
-	WhyNot    string `json:"whyNot"`
+	Link      string `json:"link" length:"0-124"`
+	Title     string `json:"title" length:"6-124"`
+	Why       string `json:"why" length:"18-1024"`
+	WhyNot    string `json:"whyNot" length:"18-1024"`
 	Anonymous bool   `json:"anonymous"`
 }
 
 type SuggestionStore interface {
-	Create(owner string) (*Suggestion, error)
-	Get(identifier string) (*Suggestion, error)
-	Delete(identifier string) error
+	Create(suggestion *Suggestion) (*Suggestion, error)
+	GetWhere(map[string]interface{}) ([]*Suggestion, error)
+	DeleteWhere(map[string]interface{}) error
 	Update(suggestion *Suggestion) error
-	DeleteByOwner(owner string, onlyUnsent bool) error
 }
 
 var ErrMessageNotFound = errors.New("Message not found")

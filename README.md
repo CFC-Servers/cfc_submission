@@ -1,6 +1,6 @@
 # CFC Suggestions
 Backend API for CFC Suggestions
-Temporary4
+
 ## endpoints
 - `POST /suggestions` 
 
@@ -42,3 +42,6 @@ Temporary4
         "owner": "179237013373845504"
     }
     ```
+    
+- GET /suggestions
+    

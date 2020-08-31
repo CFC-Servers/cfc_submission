@@ -9,7 +9,7 @@ import (
 
 func LogRequests(next http.Handler) http.Handler {
 	h := func(w http.ResponseWriter, r *http.Request) {
-		log.Infof("%v : %v %v", r.RemoteAddr, r.Method, r.URL.Path)
+		log.Infof("%v : %v %v", r.RemoteAddr, r.Method, r.URL.String())
 		next.ServeHTTP(w, r)
 	}
 
