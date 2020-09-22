@@ -6,9 +6,11 @@ import (
 	"github.com/cfc-servers/cfc_suggestions/discord"
 	"github.com/cfc-servers/cfc_suggestions/middleware"
 	"github.com/cfc-servers/cfc_suggestions/suggestions/sqlite"
+	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -18,6 +20,9 @@ func main() {
 	flag.Parse()
 
 	config := loadConfig(*configFile)
+
+	initSentry(config.SentryDSN)
+	defer sentry.Flush(5 * time.Second)
 
 	discordgoSession, err := discordgo.New(config.BotToken)
 	if err != nil {
@@ -53,9 +58,9 @@ func main() {
 	r.HandleFunc("/suggestions/{id}", s.getSuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
 
 	r.Use(
+		middleware.Recover,
 		middleware.SetHeader("Content-Type", "application/json"),
 		middleware.LogRequests,
-
 		// CORS
 		middleware.SetHeader("Access-Control-Allow-Origin", "https://cfcservers.org"),
 		middleware.SetHeader("Access-Control-Allow-Headers", "*"),
@@ -67,6 +72,17 @@ func main() {
 	log.Infof("Listening on %v", addr)
 	err = http.ListenAndServe(addr, r)
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Error(err)
+	}
+}
+
+func initSentry(dsn string) {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: dsn,
+	})
+
+	if err != nil {
+		log.Fatalf("initSentry: %v", err)
 	}
 }
