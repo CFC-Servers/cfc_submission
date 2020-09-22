@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/cfc-servers/cfc_suggestions/suggestions"
+	"github.com/getsentry/sentry-go"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -41,6 +42,7 @@ func (dest *DiscordDestination) Send(suggestion *suggestions.Suggestion) (string
 
 	if err != nil {
 		err = fmt.Errorf("Error sending destination: %w", err)
+		sentry.CaptureException(err)
 		log.Error(err)
 		return "", err
 	}
@@ -71,6 +73,7 @@ func (dest *DiscordDestination) SendEdit(suggestion *suggestions.Suggestion) (st
 		}
 
 		err = fmt.Errorf("Error sending destination: %w", err)
+		sentry.CaptureException(err)
 		log.Error(err)
 		return "", err
 	}

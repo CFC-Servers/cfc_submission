@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -14,6 +15,21 @@ func LogRequests(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(h)
+}
+
+func Recover(next http.Handler) http.Handler {
+	f := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			v := recover()
+			if err, ok := v.(error); ok {
+				sentry.CaptureException(err)
+			}
+			log.Errorf("Recovered from fatal error: %v", v)
+		}()
+
+		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(f)
 }
 
 func IgnoreMethod(method string) mux.MiddlewareFunc {

@@ -14,6 +14,7 @@ type suggestionsConfig struct {
 	BotToken                  string `json:"bot_token"`
 	IgnoreAuth                bool   `json:"ignore_auth"`
 	LogSql                    bool   `json:"log_sql"`
+	SentryDSN                 string `json:"sentry_dsn"`
 }
 
 func loadConfig(filename string) *suggestionsConfig {
