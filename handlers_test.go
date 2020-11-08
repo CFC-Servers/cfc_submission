@@ -18,9 +18,6 @@ func TestHandlers(t *testing.T) {
 		SuggestionStore: sqlite.NewStore("cfc_suggestion_test.db"),
 		suggestionsDest: &DummyDest{},
 		loggingDest:     &DummyDest{},
-		config: &suggestionsConfig{
-			Database: "cfc_suggestion_test.db",
-		},
 	}
 
 	owner1 := "23701337384550"

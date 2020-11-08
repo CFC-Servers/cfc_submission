@@ -14,7 +14,6 @@ type suggestionsServer struct {
 
 	suggestionsDest suggestions.Destination
 	loggingDest     suggestions.Destination
-	config          *suggestionsConfig
 }
 
 func (s *suggestionsServer) createSuggestionHandler(w http.ResponseWriter, r *http.Request) {

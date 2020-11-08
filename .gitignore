@@ -1,4 +1,4 @@
 *.db
-cfc_suggestions_config.json
+suggestions_config.yaml
 .idea
 .cache

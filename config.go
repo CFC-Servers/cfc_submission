@@ -1,9 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
-	"os"
+	"fmt"
+	"github.com/spf13/viper"
 )
 
 type suggestionsConfig struct {
@@ -17,21 +16,24 @@ type suggestionsConfig struct {
 	SentryDSN                 string `json:"sentry_dsn"`
 }
 
-func loadConfig(filename string) *suggestionsConfig {
-	f, err := os.Open(filename)
+func setDefaults() {
+	viper.SetDefault("database-file", "./cfc_suggestions.db")
+	viper.SetDefault("ignore-auth", false)
+}
+
+func loadConfig() {
+	viper.SetConfigName("suggestions_config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("/etc/cfc_suggestions/")
+	viper.AddConfigPath(".")
+
+	setDefaults()
+
+	err := viper.ReadInConfig()
 	if err != nil {
-		panic(err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			panic(fmt.Errorf("fatal error reading config %w", err))
+		}
 	}
-
-	var config suggestionsConfig
-	decoder := json.NewDecoder(f)
-	if err = decoder.Decode(&config); err != nil {
-		panic(err)
-	}
-
-	if config.AuthToken == "" {
-		log.Fatal("auth_token not set in config")
-	}
-
-	return &config
+	viper.AutomaticEnv()
 }

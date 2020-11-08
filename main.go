@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"github.com/bwmarrin/discordgo"
 	"github.com/cfc-servers/cfc_suggestions/discord"
 	"github.com/cfc-servers/cfc_suggestions/middleware"
@@ -9,33 +8,31 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"net/http"
 	"time"
 )
 
 func main() {
-	host := flag.String("host", "127.0.0.1", "the host to run the http server on")
-	port := flag.String("port", "4000", "the port to run the http server on")
-	configFile := flag.String("config", "cfc_suggestions_config.json", "configuration file location")
-	flag.Parse()
+	loadConfig()
 
-	config := loadConfig(*configFile)
+	host := viper.GetString("host")
+	port := viper.GetString("port")
 
-	initSentry(config.SentryDSN)
+	initSentry(viper.GetString("sentry-dsn"))
 	defer sentry.Flush(5 * time.Second)
 
-	discordgoSession, err := discordgo.New(config.BotToken)
+	discordgoSession, err := discordgo.New(viper.GetString("bot-token"))
 	if err != nil {
 		panic(err)
 	}
 
-	sqliteStore := sqlite.NewStore(config.Database)
-	sqliteStore.LogQueries = config.LogSql
+	sqliteStore := sqlite.NewStore(viper.GetString("database-file"))
+	sqliteStore.LogQueries = viper.GetBool("loq-sql")
 	s := suggestionsServer{
-		suggestionsDest: discord.NewDest(config.SuggestionsChannel, false, discordgoSession),
-		loggingDest:     discord.NewDest(config.SuggestionsLoggingChannel, true, discordgoSession),
+		suggestionsDest: discord.NewDest(viper.GetString("suggestions-channel"), false, discordgoSession),
+		loggingDest:     discord.NewDest(viper.GetString("suggestions-logging-channel"), true, discordgoSession),
 		SuggestionStore: sqliteStore,
-		config:          config,
 	}
 
 	r := mux.NewRouter()
@@ -43,11 +40,11 @@ func main() {
 	var createSuggestionsHandler http.Handler = http.HandlerFunc(s.createSuggestionHandler)
 	var indexSuggestionsHandler http.Handler = http.HandlerFunc(s.indexSuggestionHandler)
 
-	if config.IgnoreAuth {
+	if viper.GetBool("ignore-auth") {
 		log.Warning("RUNNING WITHOUT AUTHENTICATION!!!")
 	} else {
-		createSuggestionsHandler = middleware.RequireAuth(config.AuthToken, createSuggestionsHandler)
-		indexSuggestionsHandler = middleware.RequireAuth(config.AuthToken, indexSuggestionsHandler)
+		createSuggestionsHandler = middleware.RequireAuth(viper.GetString("auth-token"), createSuggestionsHandler)
+		indexSuggestionsHandler = middleware.RequireAuth(viper.GetString("auth-token"), indexSuggestionsHandler)
 	}
 
 	r.Handle("/suggestions", createSuggestionsHandler).Methods(http.MethodPost, http.MethodOptions)
@@ -68,7 +65,7 @@ func main() {
 		middleware.IgnoreMethod(http.MethodOptions),
 	)
 
-	addr := *host + ":" + *port
+	addr := host + ":" + port
 	log.Infof("Listening on %v", addr)
 	err = http.ListenAndServe(addr, r)
 	if err != nil {
