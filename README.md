@@ -8,6 +8,7 @@ e.g.
 `suggestions-channel` becomes `SUGGESTIONS_CHANNEL`
 
 ## Docker Example
+
 #### building
 `docker build -t cfc_suggestions .`
 
