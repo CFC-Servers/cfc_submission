@@ -7,7 +7,7 @@ environment variables can be used be replacing - with _ and uppercasing the name
 e.g.
 `suggestions-channel` becomes `SUGGESTIONS_CHANNEL`
 
-## Docker
+## Docker Example
 #### building
 `docker build -t cfc_suggestions .`
 
