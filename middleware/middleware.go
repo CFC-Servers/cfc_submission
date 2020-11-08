@@ -21,6 +21,10 @@ func Recover(next http.Handler) http.Handler {
 	f := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			v := recover()
+			if v == nil {
+				return
+			}
+
 			if err, ok := v.(error); ok {
 				sentry.CaptureException(err)
 			}

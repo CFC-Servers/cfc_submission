@@ -1,6 +1,11 @@
 # CFC Suggestions
 Backend API for CFC Suggestions
-
+## Configuration
+can be configured with a suggestions_config.yaml file or environment variables 
+see example_config.yaml for an example of what configuration values are available 
+environment variables can be used be replacing - with _ and uppercasing the name
+e.g.
+`suggestions-channel` becomes `SUGGESTIONS_CHANNEL`
 ## endpoints
 - `POST /suggestions` 
 

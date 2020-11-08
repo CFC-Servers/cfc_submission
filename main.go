@@ -43,8 +43,9 @@ func main() {
 	if viper.GetBool("ignore-auth") {
 		log.Warning("RUNNING WITHOUT AUTHENTICATION!!!")
 	} else {
-		createSuggestionsHandler = middleware.RequireAuth(viper.GetString("auth-token"), createSuggestionsHandler)
-		indexSuggestionsHandler = middleware.RequireAuth(viper.GetString("auth-token"), indexSuggestionsHandler)
+		authToken := viper.GetString("auth-token")
+		createSuggestionsHandler = middleware.RequireAuth(authToken, createSuggestionsHandler)
+		indexSuggestionsHandler = middleware.RequireAuth(authToken, indexSuggestionsHandler)
 	}
 
 	r.Handle("/suggestions", createSuggestionsHandler).Methods(http.MethodPost, http.MethodOptions)
