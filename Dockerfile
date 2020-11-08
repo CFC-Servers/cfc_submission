@@ -8,3 +8,4 @@ RUN apk add --no-cache gcc musl-dev
 RUN go build -o /bin/cfc_suggestions .
 
 CMD ["/bin/cfc_suggestions"]
+

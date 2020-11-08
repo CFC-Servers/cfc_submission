@@ -6,6 +6,21 @@ see example_config.yaml for an example of what configuration values are availabl
 environment variables can be used be replacing - with _ and uppercasing the name
 e.g.
 `suggestions-channel` becomes `SUGGESTIONS_CHANNEL`
+
+## Docker
+#### building
+`docker build -t cfc_suggestions .`
+
+#### running
+```bash
+docker run --name cfc_suggestions \
+-e DATABASE_FILE=/var/cfc_suggestions/database.db \
+-e PORT=5023 \
+-v /var/cfc_suggestions/test.db:/var/cfc_suggestions/database.db \
+cfc_suggestions
+```
+
+
 ## endpoints
 - `POST /suggestions` 
 
