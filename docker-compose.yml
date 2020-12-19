@@ -2,9 +2,8 @@ version: "3.8"
 services:
   web:
     build: .
-    image: ghcr.io/cfc-servers/cfc_suggestions:latest
     volumes:
-      - /var/cfc_suggestions/:/var/cfc_suggestions/
+      - ./data:/var/cfc_suggestions/
     ports:
       - "$PORT:$PORT"
     environment:
