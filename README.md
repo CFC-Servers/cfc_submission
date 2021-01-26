@@ -1,68 +1,16 @@
 # CFC Suggestions
-Backend API for CFC Suggestions
-## Configuration
-can be configured with a suggestions_config.yaml file or environment variables 
-see example_config.yaml for an example of what configuration values are available 
-environment variables can be used be replacing - with _ and uppercasing the name
-e.g.
-`suggestions-channel` becomes `SUGGESTIONS_CHANNEL`
+AWS API for CFC Forms
 
-## Docker Example
+## Project structure
+### Types
+##### Form
+forms represent a type of form e.g. suggestion or ban appeal
+- **validators:**
+forms have validators these ensure the data is valid, checking submission fields for things like min and max length
+if a submission is not valid the validator should return an error
+- **destinations:**
+forms have a slice  of destinations these contain a name and an object implementing the Sender interface
+destinations handle sending a submission to its final destination, in this case discord
 
-#### building
-`docker build -t cfc_suggestions .`
-
-#### running
-```bash
-docker run --name cfc_suggestions \
--e DATABASE_FILE=/var/cfc_suggestions/database.db \
--e PORT=5023 \
--v /var/cfc_suggestions/test.db:/var/cfc_suggestions/database.db \
-cfc_suggestions
-```
-
-
-## endpoints
-- `POST /suggestions` 
-
-    example request
-    ```json
-    {
-      "owner": "179237013373845504"
-    }
-    ```
-    example response
-    ```json
-    {
-        "identifier": "312c251b27de46c3a84c69482ebcbd59",
-        "owner": "179237013373845504"
-    }
-    ```
-- POST /suggestions/{id}/send
-
-    example request
-    ```json
-    {
-        "title": "My Title",
-        "description": "This is a description"
-    }
-    ```
-    example response
-    ```json
-    {
-        "status": "success"
-    }
-    ```
-    
-- POST /suggestions/{id}
-
-    example response
-    ```json
-    {
-        "identifier": "312c251b27de46c3a84c69482ebcbd59",
-        "owner": "179237013373845504"
-    }
-    ```
-    
-- GET /suggestions
-    
+##### Submission
+submissions represent a pending submission
