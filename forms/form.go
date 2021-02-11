@@ -26,9 +26,12 @@ func (form Form) SendSubmission(submission Submission) (Submission, error) {
 	for _, dest := range form.Destinations {
 		logger := log.WithField("submission", submission).WithField("destination", dest)
 
-		if _, ok := submission.MessageIDS[dest.Name]; ok {
+		if messageid, ok := submission.MessageIDS[dest.Name]; ok {
 			logger.Info("messageid already existed not sending")
-
+			err = dest.Edit(messageid, submission)
+			if err  != nil {
+				logger.WithError(err).Error("SendSubmission returned an error")
+			}
 			continue
 		}
 

@@ -16,7 +16,7 @@ var Forms = []forms.Form{
 				forms.Field("whyNot").Min(10).Max(300),
 				forms.Field("why").Min(10).Max(300),
 				forms.Field("description").Min(10).Max(300).Optional(),
-				forms.Field("image").Max(50).Optional(),
+				forms.Field("image").Max(100).Optional(),
 				forms.Field("realm").MustBe(	"cfc3", "cfcrp", "cfcmc", "cfcrvr", "discord", "other"),
 			),
 		},

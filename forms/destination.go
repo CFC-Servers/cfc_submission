@@ -9,4 +9,5 @@ type Destination struct {
 // the Sender interface should handle sending, editing, and deleting messages
 type Sender interface {
 	Send(Submission) (messageid string, err error)
+	Edit(string, Submission) (err error)
 }

@@ -16,6 +16,11 @@ func (m MockSender) Send(submission Submission) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
+func (m MockSender) Edit(messageid string, submission Submission) (error) {
+	args := m.Called(messageid, submission)
+	return args.Error(1)
+}
+
 var TestSubmissions = []struct{
 	submission        Submission
 	expectedMessageId string
@@ -25,10 +30,10 @@ var TestSubmissions = []struct{
 		Submission{
 			FormName: "suggestion",
 			UUID:     "7184a4dc-c6e7-418f-a61f-8eeb7801c11e",
-			Owner: Owner{
-				Name:       "HMM#001",
-				Identifier: "433348813462175745",
-				Avatar:     "https://cdn.discordapp.com/avatars/179237013373845504/cef7ff8bf178f6a1d9552cc68a4e0620.png",
+			OwnerInfo: OwnerInfo{
+				Name:   "HMM#001",
+				ID:     "433348813462175745",
+				Avatar: "https://cdn.discordapp.com/avatars/179237013373845504/cef7ff8bf178f6a1d9552cc68a4e0620.png",
 			},
 			MessageIDS: map[string]string{},
 			Fields: SubmissionFields{
@@ -41,10 +46,10 @@ var TestSubmissions = []struct{
 		Submission{
 			FormName: "suggestion",
 			UUID:     "7184a4dc-c6e7-418f-a61f-8eeb7801c11e",
-			Owner: Owner{
-				Name:       "HMM#001",
-				Identifier: "433348813462175745",
-				Avatar:     "https://cdn.discordapp.com/avatars/179237013373845504/cef7ff8bf178f6a1d9552cc68a4e0620.png",
+			OwnerInfo: OwnerInfo{
+				Name:   "HMM#001",
+				ID:     "433348813462175745",
+				Avatar: "https://cdn.discordapp.com/avatars/179237013373845504/cef7ff8bf178f6a1d9552cc68a4e0620.png",
 			},
 			MessageIDS: map[string]string{},
 			Fields: SubmissionFields{

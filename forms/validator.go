@@ -43,11 +43,11 @@ func (f FieldValidator) Validate(submission Submission) (Submission, error) {
 
 		strField := submission.Fields.Get(field.Name)
 		if field.MinLength != 0 && len(strField) < field.MinLength {
-			return submission, fmt.Errorf("%w: field must be shorter than %v characters", ValidationErr, field.MinLength)
+			return submission, fmt.Errorf("%w: field %v must be longer than %v characters", ValidationErr, field.Name, field.MinLength)
 		}
 
 		if field.MaxLength != 0 && len(strField) > field.MaxLength {
-			return submission,  fmt.Errorf("%w: field must be longer than %v characters", ValidationErr, field.MaxLength)
+			return submission,  fmt.Errorf("%w: field %v must be shorter than %v characters", ValidationErr, field.Name, field.MaxLength)
 		}
 
 	}
