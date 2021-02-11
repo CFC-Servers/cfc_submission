@@ -19,17 +19,17 @@ var realms = map[string]string{
 
 type DiscordSender struct {
 	WebhookUrl string
-	client *resty.Client
+	client     *resty.Client
 }
 
 func New(webhook string) *DiscordSender {
 	return &DiscordSender{
 		WebhookUrl: webhook,
-		client:  resty.New(),
+		client:     resty.New(),
 	}
 }
 
-func (sender  *DiscordSender) Edit(messageid string, submission forms.Submission) error {
+func (sender *DiscordSender) Edit(messageid string, submission forms.Submission) error {
 	embed := getEmbed(submission)
 	var msg Message
 
@@ -37,7 +37,7 @@ func (sender  *DiscordSender) Edit(messageid string, submission forms.Submission
 	resp, err := sender.client.R().
 		SetBody(WebhookParams{Embeds: []*MessageEmbed{&embed}}).
 		SetResult(&msg).
-		Patch(sender.WebhookUrl+"/messages/"+messageid)
+		Patch(sender.WebhookUrl + "/messages/" + messageid)
 
 	if err != nil {
 		return err
@@ -57,10 +57,10 @@ func (sender *DiscordSender) Send(submission forms.Submission) (string, error) {
 	resp, err := sender.client.R().
 		SetBody(WebhookParams{Embeds: []*MessageEmbed{&embed}}).
 		SetResult(&msg).
-		Post(sender.WebhookUrl+"?wait=true")
+		Post(sender.WebhookUrl + "?wait=true")
 
 	if err != nil {
-		return "" , err
+		return "", err
 	}
 	fmt.Println("messageid", msg.ID)
 	fmt.Println("body", string(resp.Body()))

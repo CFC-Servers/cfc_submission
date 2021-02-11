@@ -16,12 +16,12 @@ func (m MockSender) Send(submission Submission) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (m MockSender) Edit(messageid string, submission Submission) (error) {
+func (m MockSender) Edit(messageid string, submission Submission) error {
 	args := m.Called(messageid, submission)
 	return args.Error(1)
 }
 
-var TestSubmissions = []struct{
+var TestSubmissions = []struct {
 	submission        Submission
 	expectedMessageId string
 	expectedError     error
@@ -60,18 +60,16 @@ var TestSubmissions = []struct{
 	},
 }
 
-
-
 func TestForm_SendSubmission(t *testing.T) {
 	sender := MockSender{}
 
 	testDestination := Destination{
-		Name:  "test",
+		Name:   "test",
 		Sender: &sender,
 	}
 
 	form := Form{
-		Name: "suggestion",
+		Name:         "suggestion",
 		Destinations: []Destination{testDestination},
 	}
 

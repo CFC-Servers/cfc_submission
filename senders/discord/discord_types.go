@@ -1,6 +1,5 @@
 package discord
 
-
 // MessageEmbedFooter is a part of a MessageEmbed struct.
 type MessageEmbedFooter struct {
 	Text         string `json:"text,omitempty"`
@@ -70,14 +69,13 @@ type MessageEmbed struct {
 
 // WebhookParams is a struct for webhook params, used in the WebhookExecute command.
 type WebhookParams struct {
-	Content         string                  `json:"content,omitempty"`
-	Username        string                  `json:"username,omitempty"`
-	AvatarURL       string                  `json:"avatar_url,omitempty"`
-	TTS             bool                    `json:"tts,omitempty"`
-	File            string                  `json:"file,omitempty"`
-	Embeds          []*MessageEmbed         `json:"embeds,omitempty"`
+	Content   string          `json:"content,omitempty"`
+	Username  string          `json:"username,omitempty"`
+	AvatarURL string          `json:"avatar_url,omitempty"`
+	TTS       bool            `json:"tts,omitempty"`
+	File      string          `json:"file,omitempty"`
+	Embeds    []*MessageEmbed `json:"embeds,omitempty"`
 }
-
 
 type Message struct {
 	ID string `json:"id"`

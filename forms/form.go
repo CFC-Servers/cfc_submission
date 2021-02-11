@@ -4,9 +4,9 @@ import log "github.com/sirupsen/logrus"
 
 // represents a form and the senders to send items in that form to
 type Form struct {
-	Name string
+	Name         string
 	Destinations []Destination
-	Validators []Validator
+	Validators   []Validator
 }
 
 // send a submission to all the Destinations in a form
@@ -29,7 +29,7 @@ func (form Form) SendSubmission(submission Submission) (Submission, error) {
 		if messageid, ok := submission.MessageIDS[dest.Name]; ok {
 			logger.Info("messageid already existed not sending")
 			err = dest.Edit(messageid, submission)
-			if err  != nil {
+			if err != nil {
 				logger.WithError(err).Error("SendSubmission returned an error")
 			}
 			continue
