@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  SubmissionsDatabase:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: UUID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UUID
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+  CreateSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      CodeUri: cmd/create_submission/
+      Handler: lambda
+      Timeout: 10
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        CreateHandler:
+          Type: HttpApi
+          Properties:
+            Path: '/submissions'
+            Method: POST
+      Environment:
+        Variables:
+          SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
+
+  GetSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      CodeUri: cmd/get_submission/
+      Handler: lambda
+      Timeout: 10
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        GetHandler:
+          Type: HttpApi
+          Properties:
+            Path: '/submissions/{uuid}'
+            Method: GET
+      Environment:
+        Variables:
+          SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
+
+  SendSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      CodeUri: cmd/send_submission/
+      Handler: lambda
+      Timeout: 10
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        SendHandler:
+          Type: HttpApi
+          Properties:
+            Path: '/submissions/{uuid}/send'
+            Method: POST
+      Environment:
+        Variables:
+          SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
