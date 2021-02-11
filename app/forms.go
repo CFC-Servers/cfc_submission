@@ -24,6 +24,7 @@ var Forms = []forms.Form{
 			SuggestionsDestination,
 		},
 	},
+
 }
 
 var ErrMissingForm = errors.New("a form with that name did not exist")
