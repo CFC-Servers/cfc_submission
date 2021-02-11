@@ -11,7 +11,7 @@ type Validator interface {
 
 var ValidationErr = errors.New("error validating request")
 var MissingFieldErr = fmt.Errorf("%w: missing required field", ValidationErr)
-var FieldTooShortErr  = fmt.Errorf("%w: field too short", ValidationErr)
+var FieldTooShortErr = fmt.Errorf("%w: field too short", ValidationErr)
 var FieldTooLongErr = fmt.Errorf("%w: field too long", ValidationErr)
 
 type FieldValidator struct {
@@ -19,14 +19,14 @@ type FieldValidator struct {
 }
 
 type FieldValidatorField struct {
-	Name string
-	MinLength int
-	MaxLength int
-	IsOptional bool
+	Name         string
+	MinLength    int
+	MaxLength    int
+	IsOptional   bool
 	ValidOptions map[string]bool
 }
 
-func(f FieldValidator) Accept(field ...FieldValidatorField) FieldValidator {
+func (f FieldValidator) Accept(field ...FieldValidatorField) FieldValidator {
 	if f.Fields == nil {
 		f.Fields = make([]FieldValidatorField, 0)
 	}
@@ -40,14 +40,13 @@ func (f FieldValidator) Validate(submission Submission) (Submission, error) {
 			return submission, fmt.Errorf("%w: field %v is required", MissingFieldErr, field.Name)
 		}
 
-
 		strField := submission.Fields.Get(field.Name)
 		if field.MinLength != 0 && len(strField) < field.MinLength {
 			return submission, fmt.Errorf("%w: field %v must be longer than %v characters", ValidationErr, field.Name, field.MinLength)
 		}
 
 		if field.MaxLength != 0 && len(strField) > field.MaxLength {
-			return submission,  fmt.Errorf("%w: field %v must be shorter than %v characters", ValidationErr, field.Name, field.MaxLength)
+			return submission, fmt.Errorf("%w: field %v must be shorter than %v characters", ValidationErr, field.Name, field.MaxLength)
 		}
 
 	}
@@ -61,19 +60,19 @@ func Field(name string) FieldValidatorField {
 	}
 }
 
-func (field FieldValidatorField) Min(min int) FieldValidatorField{
+func (field FieldValidatorField) Min(min int) FieldValidatorField {
 	field.MinLength = min
 	return field
 }
 
-func  (field FieldValidatorField) Max(max int) FieldValidatorField {
+func (field FieldValidatorField) Max(max int) FieldValidatorField {
 	field.MaxLength = max
 	return field
 }
 
 func (field FieldValidatorField) MustBe(options ...string) FieldValidatorField {
-	if field.ValidOptions  == nil  {
-		field.ValidOptions  = make(map[string]bool)
+	if field.ValidOptions == nil {
+		field.ValidOptions = make(map[string]bool)
 	}
 	for _, option := range options {
 		field.ValidOptions[option] = true

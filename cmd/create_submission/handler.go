@@ -20,7 +20,7 @@ func main() {
 func CreateSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	var data struct {
 		FormName string
-		Owner forms.OwnerInfo
+		Owner    forms.OwnerInfo
 	}
 	if err := json.Unmarshal([]byte(req.Body), &data); err != nil {
 		return util.Response(http.StatusBadRequest, fmt.Sprintf(`{"Error": "%v"}`, err)), err
@@ -34,11 +34,12 @@ func CreateSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGate
 	submission := forms.NewSubmission(form, data.Owner)
 
 	err = dynamodb.PutSubmission(util.GetTable(), submission)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	return util.Response(http.StatusCreated, submission), nil
 }
-
 
 func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
 	if errors.Is(err, app.ErrMissingForm) {

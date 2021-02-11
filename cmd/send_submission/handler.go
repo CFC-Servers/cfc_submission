@@ -38,7 +38,7 @@ func SendSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGatewa
 		return ErrorResponse(err), nil
 	}
 	err = dynamodb.PutSubmission(util.GetTable(), submission)
-	
+
 	return util.Response(http.StatusOK, submission), err
 }
 

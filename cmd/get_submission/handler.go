@@ -25,7 +25,6 @@ func GetSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGateway
 	return util.Response(http.StatusOK, submission), err
 }
 
-
 func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
 	if errors.Is(err, dynamo.ErrNotFound) {
 		return util.Response(http.StatusNotFound, map[string]string{"Error": "not found"})

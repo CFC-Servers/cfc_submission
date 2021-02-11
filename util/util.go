@@ -10,7 +10,7 @@ import (
 )
 
 func GetTable() dynamo.Table {
-	s, err := session.NewSession( &aws.Config{
+	s, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-east-1"), // TODO this  region shouldnt be hardcoded
 	})
 	if err != nil {
@@ -32,22 +32,22 @@ func Response(StatusCode int, obj interface{}) events.APIGatewayV2HTTPResponse {
 		data, err := json.Marshal(map[string]interface{}{
 			"Error": obj,
 		})
-		if  err != nil {
+		if err != nil {
 			panic(err)
 		}
 
 		body = string(data)
 	default:
 		data, err := json.Marshal(obj)
-		if  err != nil {
+		if err != nil {
 			panic(err)
 		}
 
 		body = string(data)
 	}
 	return events.APIGatewayV2HTTPResponse{
-		StatusCode:        StatusCode,
-		Body:              body,
-		Headers: map[string]string{"Content-Type": "application/json"},
+		StatusCode: StatusCode,
+		Body:       body,
+		Headers:    map[string]string{"Content-Type": "application/json"},
 	}
 }

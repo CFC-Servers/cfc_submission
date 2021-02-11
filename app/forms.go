@@ -6,11 +6,9 @@ import (
 	"github.com/cfc-servers/cfc_suggestions/forms"
 )
 
-
-
 var Forms = []forms.Form{
 	{
-		Name:         "suggestion",
+		Name: "suggestion",
 		Validators: []forms.Validator{
 			forms.FieldValidator{}.Accept(
 				forms.Field("whyNot").Min(10).Max(300),
@@ -24,12 +22,11 @@ var Forms = []forms.Form{
 			SuggestionsDestination,
 		},
 	},
-
 }
 
 var ErrMissingForm = errors.New("a form with that name did not exist")
 
-func GetForm(name string) (forms.Form,  error) {
+func GetForm(name string) (forms.Form, error) {
 	for _, form := range Forms {
 		if form.Name == name {
 			return form, nil
