@@ -15,6 +15,9 @@ type Submission struct {
 
 	MessageIDS map[string]string
 	Fields     SubmissionFields
+
+	Deleted   bool
+	DeletedAt time.Time
 }
 
 type OwnerInfo struct {

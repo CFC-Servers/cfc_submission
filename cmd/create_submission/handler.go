@@ -28,7 +28,7 @@ func CreateSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGate
 
 	form, err := app.GetForm(data.FormName)
 	if err != nil {
-		return ErrorResponse(err), nil
+		return errorResponse(err), nil
 	}
 
 	submission := forms.NewSubmission(form, data.Owner)
@@ -41,7 +41,7 @@ func CreateSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGate
 	return util.Response(http.StatusCreated, submission), nil
 }
 
-func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
+func errorResponse(err error) events.APIGatewayV2HTTPResponse {
 	if errors.Is(err, app.ErrMissingForm) {
 		return util.Response(http.StatusBadRequest, fmt.Sprintf(`{"Error": "Invalid form name"}`))
 	}

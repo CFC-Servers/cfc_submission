@@ -10,4 +10,5 @@ type Destination struct {
 type Sender interface {
 	Send(Submission) (messageid string, err error)
 	Edit(string, Submission) (err error)
+	Delete(string) (err error)
 }

@@ -49,6 +49,20 @@ func (sender *DiscordSender) Edit(messageid string, submission forms.Submission)
 	return nil
 }
 
+func (sender *DiscordSender) Delete(messageid string) error {
+	// TODO check status code ensuring it is 200
+	resp, err := sender.client.R().
+		Delete(sender.WebhookUrl + "/messages/" + messageid)
+
+	if err != nil {
+		return err
+	}
+	fmt.Println("url", sender.WebhookUrl+"/messages/"+messageid)
+	fmt.Println("body", string(resp.Body()))
+	fmt.Println("status", resp.Status())
+	return nil
+}
+
 func (sender *DiscordSender) Send(submission forms.Submission) (string, error) {
 	embed := getEmbed(submission)
 	var msg Message

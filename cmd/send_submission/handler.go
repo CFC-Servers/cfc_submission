@@ -23,7 +23,7 @@ func SendSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGatewa
 
 	submission, err := dynamodb.GetSubmission(util.GetTable(), uuid)
 	if err != nil {
-		return ErrorResponse(err), nil
+		return errorResponse(err), nil
 	}
 
 	submission.Fields = make(forms.SubmissionFields)
@@ -35,14 +35,14 @@ func SendSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGatewa
 
 	submission, err = form.SendSubmission(submission)
 	if err != nil {
-		return ErrorResponse(err), nil
+		return errorResponse(err), nil
 	}
 	err = dynamodb.PutSubmission(util.GetTable(), submission)
 
 	return util.Response(http.StatusOK, submission), err
 }
 
-func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
+func errorResponse(err error) events.APIGatewayV2HTTPResponse {
 	if errors.Is(err, dynamo.ErrNotFound) {
 		return util.Response(http.StatusNotFound, map[string]string{"Error": "not found"})
 	}

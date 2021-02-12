@@ -6,7 +6,7 @@ import (
 )
 
 type Validator interface {
-	Validate(Submission) (Submission, error)
+	Validate(Submission) error
 }
 
 var ValidationErr = errors.New("error validating request")
@@ -34,24 +34,24 @@ func (f FieldValidator) Accept(field ...FieldValidatorField) FieldValidator {
 	return f
 }
 
-func (f FieldValidator) Validate(submission Submission) (Submission, error) {
+func (f FieldValidator) Validate(submission Submission) error {
 	for _, field := range f.Fields {
 		if !submission.Fields.Has(field.Name) && !field.IsOptional {
-			return submission, fmt.Errorf("%w: field %v is required", MissingFieldErr, field.Name)
+			return fmt.Errorf("%w: field %v is required", MissingFieldErr, field.Name)
 		}
 
 		strField := submission.Fields.Get(field.Name)
 		if field.MinLength != 0 && len(strField) < field.MinLength {
-			return submission, fmt.Errorf("%w: field %v must be longer than %v characters", ValidationErr, field.Name, field.MinLength)
+			return fmt.Errorf("%w: field %v must be longer than %v characters", FieldTooShortErr, field.Name, field.MinLength)
 		}
 
 		if field.MaxLength != 0 && len(strField) > field.MaxLength {
-			return submission, fmt.Errorf("%w: field %v must be shorter than %v characters", ValidationErr, field.Name, field.MaxLength)
+			return fmt.Errorf("%w: field %v must be shorter than %v characters", FieldTooLongErr, field.Name, field.MaxLength)
 		}
 
 	}
 
-	return submission, nil
+	return nil
 }
 
 func Field(name string) FieldValidatorField {
