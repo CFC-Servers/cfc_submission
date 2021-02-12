@@ -9,6 +9,7 @@ import (
 var Forms = []forms.Form{
 	{
 		Name: "suggestion",
+
 		Validators: []forms.Validator{
 			forms.FieldValidator{}.Accept(
 				forms.Field("whyNot").Min(10).Max(300),
@@ -18,6 +19,7 @@ var Forms = []forms.Form{
 				forms.Field("realm").MustBe("cfc3", "cfcrp", "cfcmc", "cfcrvr", "discord", "other"),
 			),
 		},
+
 		Destinations: []forms.Destination{
 			SuggestionsDestination,
 		},

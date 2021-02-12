@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/cfc-servers/cfc_suggestions/app"
 	"github.com/cfc-servers/cfc_suggestions/dynamodb"
 	"github.com/cfc-servers/cfc_suggestions/util"
 	"github.com/guregu/dynamo"
@@ -22,7 +23,17 @@ func GetSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGateway
 		return errorResponse(err), nil
 	}
 
-	return util.Response(http.StatusOK, submission), err
+	form, err := app.GetForm(submission.FormName)
+	if err != nil {
+		return errorResponse(err), nil
+	}
+
+	err = form.DeleteSubmission(submission)
+	if err != nil {
+		return errorResponse(err), nil
+	}
+
+	return util.Response(http.StatusNoContent, ""), nil
 }
 
 func errorResponse(err error) events.APIGatewayV2HTTPResponse {

@@ -1,5 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: go1.x
+    Handler: lambda
+    Timeout: 10
+    Environment:
+      Variables:
+        SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
+
 Resources:
   SubmissionsDatabase:
     Type: AWS::DynamoDB::Table
@@ -17,10 +27,7 @@ Resources:
   CreateSubmission:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: go1.x
       CodeUri: cmd/create_submission/
-      Handler: lambda
-      Timeout: 10
       Policies: AmazonDynamoDBFullAccess
       Events:
         CreateHandler:
@@ -28,17 +35,11 @@ Resources:
           Properties:
             Path: '/submissions'
             Method: POST
-      Environment:
-        Variables:
-          SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
 
   GetSubmission:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: go1.x
       CodeUri: cmd/get_submission/
-      Handler: lambda
-      Timeout: 10
       Policies: AmazonDynamoDBFullAccess
       Events:
         GetHandler:
@@ -46,17 +47,11 @@ Resources:
           Properties:
             Path: '/submissions/{uuid}'
             Method: GET
-      Environment:
-        Variables:
-          SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
 
   SendSubmission:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: go1.x
       CodeUri: cmd/send_submission/
-      Handler: lambda
-      Timeout: 10
       Policies: AmazonDynamoDBFullAccess
       Events:
         SendHandler:
@@ -64,6 +59,15 @@ Resources:
           Properties:
             Path: '/submissions/{uuid}/send'
             Method: POST
-      Environment:
-        Variables:
-          SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
+
+  DeleteSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/delete_submission/
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        DeleteHandler:
+          Type: HttpApi
+          Properties:
+            Path: '/submissions/{uuid}'
+            Method: DELETE
