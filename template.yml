@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  SuggestionsDiscordWebhook:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'SuggestionsDiscordWebhook'
+
 Globals:
   Function:
     Runtime: go1.x
@@ -9,6 +14,7 @@ Globals:
     Environment:
       Variables:
         SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
+        SUGGESTIONS_WEBHOOK: !Ref SuggestionsDiscordWebhook
 
 Resources:
   SubmissionsDatabase:

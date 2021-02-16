@@ -14,7 +14,8 @@ type Submission struct {
 	CreatedAt time.Time
 
 	MessageIDS map[string]string
-	Fields     SubmissionFields
+	Fields SubmissionFields `dynamo:"-"`
+	Content FormattedContent
 
 	Deleted   bool
 	DeletedAt time.Time
@@ -24,6 +25,7 @@ type OwnerInfo struct {
 	ID     string
 	Name   string
 	Avatar string
+	URL string
 }
 
 func NewSubmission(form Form, ownerInfo OwnerInfo) Submission {
@@ -43,7 +45,7 @@ func (fields SubmissionFields) Has(key string) bool {
 	return ok
 }
 
-func (fields SubmissionFields) Get(key string) string {
+func (fields SubmissionFields) GetString(key string) string {
 	value, ok := fields[key]
 	if !ok {
 		return ""
@@ -54,4 +56,17 @@ func (fields SubmissionFields) Get(key string) string {
 	}
 
 	return ""
+}
+
+func (fields SubmissionFields) GetBool(key string) bool {
+	value, ok := fields[key]
+	if !ok {
+		return false
+	}
+
+	if boolValue, ok := value.(bool); ok {
+		return boolValue
+	}
+
+	return false
 }
