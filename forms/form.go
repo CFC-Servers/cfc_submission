@@ -5,11 +5,15 @@ import (
 	"time"
 )
 
-// represents a form and the senders to send items in that form to
+// represents a form
+// Destinations is a list of destinations to send the submission to
+// Validators is a list of validators that should be run on the submission fields before sending to ensure they are correct
+// Formatter is responsible for formatting the SubmissionFields into a uniform structure that can be sent to destinations
 type Form struct {
 	Name         string
 	Destinations []Destination
 	Validators   []Validator
+	Formatter     Formatter
 }
 
 // send a submission to all the Destinations in a form
@@ -22,6 +26,7 @@ func (form Form) SendSubmission(submission Submission) (Submission, error) {
 	if err != nil {
 		return submission, err
 	}
+	submission = form.FormatSubmission(submission)
 
 	for _, dest := range form.Destinations {
 		logger := log.WithField("submission", submission).WithField("destination", dest)
@@ -71,6 +76,10 @@ func (form Form) DeleteSubmission(submission Submission) error {
 	return nil
 }
 
+func (form *Form) FormatSubmission(submission Submission) Submission {
+	submission.Content = form.Formatter.GetFormattedContent(submission)
+	return submission
+}
 // check if a Submission is valid
 func (form *Form) ValidateSubmission(submission Submission) error {
 	for _, validator := range form.Validators {

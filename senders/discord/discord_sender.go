@@ -6,17 +6,6 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-const editedAtTimeFormat = "Mon Jan _2 15:04:05 2006"
-
-var realms = map[string]string{
-	"cfc3":    "Build/Kill",
-	"cfcrp":   "DarkRP",
-	"cfcmc":   "Minecraft",
-	"cfcrvr":  "Raft V Raft",
-	"discord": "Discord",
-	"other":   "Other",
-}
-
 type DiscordSender struct {
 	WebhookUrl string
 	client     *resty.Client
@@ -83,25 +72,28 @@ func (sender *DiscordSender) Send(submission forms.Submission) (string, error) {
 }
 
 func getEmbed(submission forms.Submission) MessageEmbed {
-	embed := MessageEmbed{}
+	content := submission.Content
 
-	for k, _ := range submission.Fields {
-		v := submission.Fields.Get(k)
+	embed := MessageEmbed{Color: submission.Content.Color}
+	embed.Description = content.Description
+	embed.Title = content.Title
+	embed.Image = &MessageEmbedImage{
+		URL: content.Image,
+	}
 
-		switch k {
-		case "description":
-			embed.Description = v
-		case "image":
-			embed.Image = &MessageEmbedImage{
-				URL: submission.Fields.Get("image"),
-			}
-		default:
-			embed.Fields = append(embed.Fields, &MessageEmbedField{
-				Name:   k,
-				Value:  v,
-				Inline: false,
-			})
+	if !submission.Fields.GetBool("anonymous") { // TODO should fields only be accessed this way in the formatter?
+		embed.Author = &MessageEmbedAuthor{
+			Name:    submission.OwnerInfo.Name,
+			IconURL: submission.OwnerInfo.Avatar,
+			URL:     submission.OwnerInfo.URL,
 		}
+	}
+
+	for _, field := range content.Fields {
+		embed.Fields = append(embed.Fields, &MessageEmbedField{
+			Name:   field.Name,
+			Value:  field.Value,
+		})
 	}
 
 	return embed
