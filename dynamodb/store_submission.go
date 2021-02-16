@@ -15,6 +15,13 @@ func GetSubmission(table dynamo.Table, identifier string) (forms.Submission, err
 	return submission, err
 }
 
+func GetOwnerSubmissions(table dynamo.Table, ownerId string) ([]forms.Submission, error) {
+	var submissions []forms.Submission
+	// TODO pass this index in an environment variable
+	err := table.Get("OwnerID", ownerId).Index("ownerid-createdat-index").All(&submissions)
+	return submissions, err
+}
+
 func DeleteSubmission(table dynamo.Table, identifier string) error {
 	return table.Delete("UUID", identifier).Run()
 }

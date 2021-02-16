@@ -23,12 +23,27 @@ Resources:
       AttributeDefinitions:
         - AttributeName: UUID
           AttributeType: S
+        - AttributeName: OwnerID
+          AttributeType: S
+        - AttributeName: CreatedAt
+          AttributeType: S
       KeySchema:
         - AttributeName: UUID
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
       StreamSpecification:
         StreamViewType: NEW_IMAGE
+
+      GlobalSecondaryIndexes:
+        - IndexName: ownerid-createdat-index
+          KeySchema:
+            - AttributeName: OwnerID
+              KeyType: HASH
+            - AttributeName: CreatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
 
   CreateSubmission:
     Type: AWS::Serverless::Function
@@ -77,3 +92,15 @@ Resources:
           Properties:
             Path: '/submissions/{uuid}'
             Method: DELETE
+
+  IndexSubmissions:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/index_submissions/
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        IndexHandler:
+          Type: HttpApi
+          Properties:
+            Path: '/submissions'
+            Method: GET

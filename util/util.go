@@ -30,7 +30,7 @@ func Response(StatusCode int, obj interface{}) events.APIGatewayV2HTTPResponse {
 		body = string(obj)
 	case error:
 		data, err := json.Marshal(map[string]interface{}{
-			"Error": obj,
+			"Error": obj.Error(),
 		})
 		if err != nil {
 			panic(err)
