@@ -13,7 +13,7 @@ type Form struct {
 	Name         string
 	Destinations []Destination
 	Validators   []Validator
-	Formatter     Formatter
+	Formatter    Formatter
 }
 
 // send a submission to all the Destinations in a form
@@ -80,6 +80,7 @@ func (form *Form) FormatSubmission(submission Submission) Submission {
 	submission.Content = form.Formatter.GetFormattedContent(submission)
 	return submission
 }
+
 // check if a Submission is valid
 func (form *Form) ValidateSubmission(submission Submission) error {
 	for _, validator := range form.Validators {

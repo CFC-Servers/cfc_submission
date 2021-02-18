@@ -10,10 +10,11 @@ type Validator interface {
 }
 
 var ValidationErr = errors.New("error validating request")
-var MissingFieldErr = fmt.Errorf("%w: missing required field", ValidationErr)
-var FieldTooShortErr = fmt.Errorf("%w: field too short", ValidationErr)
-var FieldTooLongErr = fmt.Errorf("%w: field too long", ValidationErr)
-var UnknownFieldErr = fmt.Errorf("%w: unkown field", ValidationErr)
+var ErrMissingField = fmt.Errorf("%w: missing required field", ValidationErr)
+var ErrFieldTooShort = fmt.Errorf("%w: field too short", ValidationErr)
+var ErrFieldTooLong = fmt.Errorf("%w: field too long", ValidationErr)
+var ErrUnknownField = fmt.Errorf("%w: unkown field", ValidationErr)
+
 type FieldValidator struct {
 	Fields map[string]FieldValidatorField
 }
@@ -31,7 +32,7 @@ func (f FieldValidator) Accept(newFields ...FieldValidatorField) FieldValidator 
 		f.Fields = make(map[string]FieldValidatorField)
 	}
 
-	for _, newField :=  range newFields {
+	for _, newField := range newFields {
 		f.Fields[newField.Name] = newField
 	}
 
@@ -42,25 +43,24 @@ func (f FieldValidator) Validate(submission Submission) error {
 	for k, _ := range submission.Fields {
 		_, ok := f.Fields[k]
 		if !ok {
-			return fmt.Errorf("%w: did not expect field %v", UnknownFieldErr, k)
+			return fmt.Errorf("%w: did not expect field %v", ErrUnknownField, k)
 		}
 	}
 
 	for _, validator := range f.Fields {
 		if !submission.Fields.Has(validator.Name) && !validator.IsOptional {
-			return fmt.Errorf("%w: field %v is required", MissingFieldErr, validator.Name)
+			return fmt.Errorf("%w: field %v is required", ErrMissingField, validator.Name)
 		}
 
 		strField := submission.Fields.GetString(validator.Name)
 		if validator.MinLength != 0 && len(strField) < validator.MinLength {
-			return fmt.Errorf("%w: field %v must be longer than %v characters", FieldTooShortErr, validator.Name, validator.MinLength)
+			return fmt.Errorf("%w: field %v must be longer than %v characters", ErrFieldTooShort, validator.Name, validator.MinLength)
 		}
 
 		if validator.MaxLength != 0 && len(strField) > validator.MaxLength {
-			return fmt.Errorf("%w: field %v must be shorter than %v characters", FieldTooLongErr, validator.Name, validator.MaxLength)
+			return fmt.Errorf("%w: field %v must be shorter than %v characters", ErrFieldTooLong, validator.Name, validator.MaxLength)
 		}
 	}
-
 
 	return nil
 }
