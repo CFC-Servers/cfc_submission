@@ -17,6 +17,11 @@ Globals:
         SUGGESTIONS_WEBHOOK: !Ref SuggestionsDiscordWebhook
 
 Resources:
+  SubmissionsApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: '$default'
+
   SubmissionsDatabase:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -54,44 +59,9 @@ Resources:
         CreateHandler:
           Type: HttpApi
           Properties:
+            ApiId: !Ref SubmissionsApi
             Path: '/submissions'
             Method: POST
-
-  GetSubmission:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cmd/get_submission/
-      Policies: AmazonDynamoDBFullAccess
-      Events:
-        GetHandler:
-          Type: HttpApi
-          Properties:
-            Path: '/submissions/{uuid}'
-            Method: GET
-
-  SendSubmission:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cmd/send_submission/
-      Policies: AmazonDynamoDBFullAccess
-      Events:
-        SendHandler:
-          Type: HttpApi
-          Properties:
-            Path: '/submissions/{uuid}/send'
-            Method: POST
-
-  DeleteSubmission:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cmd/delete_submission/
-      Policies: AmazonDynamoDBFullAccess
-      Events:
-        DeleteHandler:
-          Type: HttpApi
-          Properties:
-            Path: '/submissions/{uuid}'
-            Method: DELETE
 
   IndexSubmissions:
     Type: AWS::Serverless::Function
@@ -102,5 +72,52 @@ Resources:
         IndexHandler:
           Type: HttpApi
           Properties:
+            ApiId: !Ref SubmissionsApi
             Path: '/submissions'
             Method: GET
+
+  GetSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/get_submission/
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        GetHandler:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SubmissionsApi
+            Path: '/submissions/{uuid}'
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  SendSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/send_submission/
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        SendHandler:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SubmissionsApi
+            Path: '/submissions/{uuid}/send'
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  DeleteSubmission:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/delete_submission/
+      Policies: AmazonDynamoDBFullAccess
+      Events:
+        DeleteHandler:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SubmissionsApi
+            Path: '/submissions/{uuid}'
+            Method: DELETE
+            Auth:
+              Authorizer: NONE
+

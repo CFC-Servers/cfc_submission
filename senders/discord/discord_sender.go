@@ -91,8 +91,8 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 
 	for _, field := range content.Fields {
 		embed.Fields = append(embed.Fields, &MessageEmbedField{
-			Name:   field.Name,
-			Value:  field.Value,
+			Name:  field.Name,
+			Value: field.Value,
 		})
 	}
 

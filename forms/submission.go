@@ -14,8 +14,8 @@ type Submission struct {
 	CreatedAt time.Time
 
 	MessageIDS map[string]string
-	Fields SubmissionFields `dynamo:"-"`
-	Content FormattedContent
+	Fields     SubmissionFields `dynamo:"-"`
+	Content    FormattedContent
 
 	Deleted   bool
 	DeletedAt time.Time
@@ -25,7 +25,7 @@ type OwnerInfo struct {
 	ID     string
 	Name   string
 	Avatar string
-	URL string
+	URL    string
 }
 
 func NewSubmission(form Form, ownerInfo OwnerInfo) Submission {

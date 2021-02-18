@@ -21,7 +21,7 @@ func (formatter DefaultFormatter) GetFormattedContent(submission Submission) For
 	)
 
 	content := FormattedContent{
-		Color: formatter.Color,
+		Color:       formatter.Color,
 		Image:       submission.Fields.GetString("image"),
 		Title:       fmt.Sprintf("[%v] %v", realm, submission.FormName),
 		Description: description,
@@ -38,14 +38,13 @@ func (formatter DefaultFormatter) GetFormattedContent(submission Submission) For
 			v := submission.Fields.GetString(k)
 			if v != "" {
 				content.Fields = append(content.Fields, FormattedContentField{
-					Name: k,
+					Name:  k,
 					Value: v,
 				})
 			}
 		}
 
 	}
-
 
 	return content
 }
@@ -54,8 +53,8 @@ type FormattedContent struct {
 	Image       string
 	Title       string
 	Description string
-	Color int
-	Fields []FormattedContentField
+	Color       int
+	Fields      []FormattedContentField
 }
 
 type FormattedContentField struct {
