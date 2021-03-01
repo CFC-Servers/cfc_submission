@@ -21,6 +21,12 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: '$default'
+      Auth:
+        DefaultAuthorizer: Default
+        Authorizers:
+          Default:
+            AuthorizerPayloadFormatVersion: 1
+            FunctionArn: !Ref AuthorizerFunction
 
   SubmissionsDatabase:
     Type: AWS::DynamoDB::Table
@@ -49,6 +55,10 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  AuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/authorizer/
 
   CreateSubmission:
     Type: AWS::Serverless::Function
