@@ -26,7 +26,9 @@ var Forms = []forms.Form{
 			SuggestionsDestination,
 		},
 
-		Formatter: forms.DefaultFormatter{Color: 0x34eb5b},
+		Formatter: forms.DefaultFormatter{Color: 0x34eb5b}.Fields(
+			"why", "whyNot",
+		),
 	},
 }
 

@@ -10,6 +10,12 @@ type Formatter interface {
 
 type DefaultFormatter struct {
 	Color int
+	FieldOrder []string
+}
+
+func(formatter DefaultFormatter) Fields(newFields ...string) DefaultFormatter {
+	formatter.FieldOrder = append(formatter.FieldOrder, newFields...)
+	return formatter
 }
 
 func (formatter DefaultFormatter) GetFormattedContent(submission Submission) FormattedContent {
@@ -28,22 +34,15 @@ func (formatter DefaultFormatter) GetFormattedContent(submission Submission) For
 		Fields:      nil,
 	}
 
-	for k, _ := range submission.Fields {
-		switch k {
-		case "title":
-		case "image":
-		case "realm":
-		case "description":
-		default:
-			v := submission.Fields.GetString(k)
-			if v != "" {
-				content.Fields = append(content.Fields, FormattedContentField{
-					Name:  k,
-					Value: v,
-				})
-			}
-		}
+	for _, fieldName := range formatter.FieldOrder {
 
+		v := submission.Fields.GetString(fieldName)
+		if v != "" {
+			content.Fields = append(content.Fields, FormattedContentField{
+				Name:  fieldName,
+				Value: v,
+			})
+		}
 	}
 
 	return content
