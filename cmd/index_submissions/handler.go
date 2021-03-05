@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/cfc-servers/cfc_suggestions/dynamodb"
@@ -33,6 +32,6 @@ func errorResponse(err error) events.APIGatewayV2HTTPResponse {
 	if errors.Is(err, dynamo.ErrNotFound) {
 		return util.Response(http.StatusNotFound, map[string]string{"Error": "not found"})
 	}
-	fmt.Println(err)
+
 	return util.Response(http.StatusInternalServerError, err)
 }

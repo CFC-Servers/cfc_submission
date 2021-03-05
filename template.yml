@@ -21,6 +21,7 @@ Globals:
         DISCORD_CLIENT_ID: "817289571142205450"
         SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
         SUGGESTIONS_WEBHOOK: !Ref SuggestionsDiscordWebhook
+        DISCORD_BOT_TOKEN: !Ref CFCFormsDiscordBotToken
         GUILD_ID: 225975453138026497
 
 Resources:
@@ -28,13 +29,17 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: '$default'
+      DisableExecuteApiEndpoint: true
+      Domain:
+        DomainName: submissions.cfcservers.org
+        CertificateArn: arn:aws:acm:us-east-1:215025579220:certificate/df5a47c9-1a2e-48e5-a952-971cbb03ecf2
       Auth:
         DefaultAuthorizer: FormsDefaultAuthorizer
         Authorizers:
           FormsDefaultAuthorizer:
             EnableSimpleResponses: true
             AuthorizerPayloadFormatVersion: 2.0
-            FunctionArn: !Ref AuthorizerFunction
+            FunctionArn: !GetAtt AuthorizerFunction.Arn
             Identity:
               Headers:
                 - Authorization
