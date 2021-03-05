@@ -28,10 +28,11 @@ func GetSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGateway
 		return errorResponse(err), nil
 	}
 
-	err = form.DeleteSubmission(submission)
+	submission, err = form.DeleteSubmission(submission)
 	if err != nil {
 		return errorResponse(err), nil
 	}
+	_ = dynamodb.PutSubmission(util.GetTable(), submission)
 
 	return util.Response(http.StatusNoContent, ""), nil
 }

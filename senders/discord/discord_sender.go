@@ -85,7 +85,6 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 		embed.Author = &MessageEmbedAuthor{
 			Name:    submission.OwnerInfo.Name,
 			IconURL: submission.OwnerInfo.Avatar,
-			URL:     submission.OwnerInfo.URL,
 		}
 	}
 
@@ -95,6 +94,8 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 			Value: field.Value,
 		})
 	}
-
+	embed.Footer = &MessageEmbedFooter{
+		Text: "User ID: "+submission.OwnerID,
+	}
 	return embed
 }
