@@ -52,7 +52,7 @@ func (form Form) SendSubmission(submission Submission) (Submission, error) {
 }
 
 // send a submission to all the Destinations in a form
-func (form Form) DeleteSubmission(submission Submission) error {
+func (form Form) DeleteSubmission(submission Submission) (Submission, error) {
 	if submission.MessageIDS == nil {
 		submission.MessageIDS = make(map[string]string)
 	}
@@ -73,7 +73,7 @@ func (form Form) DeleteSubmission(submission Submission) error {
 
 	submission.Deleted = true
 	submission.DeletedAt = time.Now()
-	return nil
+	return submission, nil
 }
 
 func (form *Form) FormatSubmission(submission Submission) Submission {

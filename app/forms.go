@@ -12,12 +12,13 @@ var Forms = []forms.Form{
 
 		Validators: []forms.Validator{
 			forms.FieldValidator{}.Accept(
-				forms.Field("why").Min(10).Max(300),
-				forms.Field("whyNot").Min(10).Max(300),
-				forms.Field("description").Min(10).Max(300).Optional(),
-				forms.Field("title").Min(1).Max(100),
-				forms.Field("image").Max(100).Optional(),
+				forms.Field("why").Min(18).Max(1024),
+				forms.Field("whyNot").Min(18).Max(1024),
+				forms.Field("description").Min(18).Max(1024).Optional(),
+				forms.Field("title").Min(6).Max(124),
+				forms.Field("image").Max(124).Optional(),
 				forms.Field("realm").MustBe("cfc3", "cfcrp", "cfcmc", "cfcrvr", "discord", "other"),
+				forms.Field("link").Max(124).Optional(),
 				forms.Field("anonymous").Optional(),
 			),
 		},
@@ -27,7 +28,7 @@ var Forms = []forms.Form{
 		},
 
 		Formatter: forms.DefaultFormatter{Color: 0x34eb5b}.Fields(
-			"why", "whyNot",
+			"why", "whyNot", "link",
 		),
 	},
 }

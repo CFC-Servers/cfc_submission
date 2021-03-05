@@ -11,17 +11,17 @@ func PutSubmission(table dynamo.Table, submission forms.Submission) error {
 
 func GetSubmission(table dynamo.Table, identifier string) (forms.Submission, error) {
 	var submission forms.Submission
-	err := table.Get("UUID", identifier).One(&submission)
+	err := table.Get("UUID", identifier).Filter("'Deleted'<>?", true).One(&submission)
 	return submission, err
 }
 
 func GetOwnerSubmissions(table dynamo.Table, ownerId string) ([]forms.Submission, error) {
 	var submissions []forms.Submission
 	// TODO pass this index in an environment variable
-	err := table.Get("OwnerID", ownerId).Index("ownerid-createdat-index").All(&submissions)
+	err := table.Get("OwnerID", ownerId).
+		Filter("'Deleted'<>?", true).
+		Index("ownerid-createdat-index").
+		Order(dynamo.Descending).
+		All(&submissions)
 	return submissions, err
-}
-
-func DeleteSubmission(table dynamo.Table, identifier string) error {
-	return table.Delete("UUID", identifier).Run()
 }

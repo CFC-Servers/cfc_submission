@@ -2,6 +2,7 @@ package forms
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Formatter interface {
@@ -20,6 +21,8 @@ func(formatter DefaultFormatter) Fields(newFields ...string) DefaultFormatter {
 
 func (formatter DefaultFormatter) GetFormattedContent(submission Submission) FormattedContent {
 	realm := submission.Fields.GetString("realm")
+	realm = getPrettyRealm(realm)
+	// TODO description and title shouldnt be hardcoded in the default formatter
 	description := fmt.Sprintf(
 		"**%v**\n\n%v",
 		submission.Fields.GetString("title"),
@@ -39,7 +42,7 @@ func (formatter DefaultFormatter) GetFormattedContent(submission Submission) For
 		v := submission.Fields.GetString(fieldName)
 		if v != "" {
 			content.Fields = append(content.Fields, FormattedContentField{
-				Name:  fieldName,
+				Name:  strings.Title(fieldName),
 				Value: v,
 			})
 		}
@@ -59,4 +62,15 @@ type FormattedContent struct {
 type FormattedContentField struct {
 	Name  string
 	Value string
+}
+
+func getPrettyRealm(realm string) string {
+	switch realm {
+	case "cfc3": return "Build/Kill"
+	case "cfcmc": return "Minecraft"
+	case "discord": return "Discord"
+	case "cfcttt": return "TTT"
+	case "cfcprophunt": return "Prop Hunt"
+	default: return realm
+	}
 }
