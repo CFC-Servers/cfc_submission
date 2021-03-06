@@ -86,6 +86,9 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 			Name:    submission.OwnerInfo.Name,
 			IconURL: submission.OwnerInfo.Avatar,
 		}
+		embed.Footer = &MessageEmbedFooter{
+			Text: "User ID: "+submission.OwnerID,
+		}
 	}
 
 	for _, field := range content.Fields {
@@ -93,9 +96,6 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 			Name:  field.Name,
 			Value: field.Value,
 		})
-	}
-	embed.Footer = &MessageEmbedFooter{
-		Text: "User ID: "+submission.OwnerID,
 	}
 	return embed
 }

@@ -25,3 +25,7 @@ func GetOwnerSubmissions(table dynamo.Table, ownerId string) ([]forms.Submission
 		All(&submissions)
 	return submissions, err
 }
+
+func DeleteSubmission(table dynamo.Table, submissionId string) error {
+	return table.Delete("UUID", submissionId).Run()
+}

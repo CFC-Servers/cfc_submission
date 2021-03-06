@@ -25,6 +25,15 @@ func CreateSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGate
 	if err := json.Unmarshal([]byte(req.Body), &data); err != nil {
 		return util.Response(http.StatusBadRequest, fmt.Sprintf(`{"Error": "%v"}`, err)), err
 	}
+	existingSubmissions, err := dynamodb.GetOwnerSubmissions(util.GetTable(), data.Owner.ID)
+	for _, submission := range existingSubmissions {
+		if submission.FormName != data.FormName {
+			continue
+		}
+		if len(submission.MessageIDS) == 0 {
+			dynamodb.DeleteSubmission(util.GetTable(), submission.UUID)
+		}
+	}
 
 	form, err := app.GetForm(data.FormName)
 	if err != nil {
