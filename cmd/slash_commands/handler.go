@@ -77,6 +77,17 @@ func suggestCommandHandler(ctx *goslash.InteractionContext) *goslash.Interaction
 	}
 
 	avatar := fmt.Sprintf("https://cdn.discordapp.com/avatars/%v/%v.png?size=1024", ctx.GetUser().ID, ctx.GetUser().Avatar)
+
+	existingSubmissions, _ := dynamodb.GetOwnerSubmissions(util.GetTable(), ctx.GetUser().ID)
+	for _, submission := range existingSubmissions {
+		if submission.FormName != "suggestion" {
+			continue
+		}
+		if len(submission.MessageIDS) == 0 {
+			dynamodb.DeleteSubmission(util.GetTable(), submission.UUID)
+		}
+	}
+
 	submission := forms.NewSubmission(form, forms.OwnerInfo{
 		ID:     ctx.GetUser().ID,
 		Name:   ctx.GetUser().Username+"#"+ctx.GetUser().Discriminator,

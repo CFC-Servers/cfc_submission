@@ -14,7 +14,7 @@ type Submission struct {
 	CreatedAt time.Time
 
 	MessageIDS map[string]string
-	Fields     SubmissionFields `dynamo:"-"`
+	Fields     SubmissionFields
 	Content    FormattedContent
 
 	Deleted   bool

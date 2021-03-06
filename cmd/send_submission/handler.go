@@ -27,6 +27,7 @@ func SendSubmissionHandler(req events.APIGatewayV2HTTPRequest) (events.APIGatewa
 	}
 
 	submission.Fields = make(forms.SubmissionFields)
+
 	if err := json.Unmarshal([]byte(req.Body), &submission.Fields); err != nil {
 		return util.Response(http.StatusBadRequest, fmt.Sprintf(`{"Error": "%v"}`, err)), err
 	}

@@ -16,7 +16,7 @@ Globals:
     Timeout: 10
     Environment:
       Variables:
-        SUGGESTIONS_BASE_URL: "https://cfcservers.org/suggestions?token="
+        SUGGESTIONS_BASE_URL: "https://cfcservers.org/suggestion?token="
         DISCORD_PUBLIC_KEY: "840d7423afb7fd77cbb9468eb21fa56b8cde0c5eb514855a32558aeddb4215c6"
         DISCORD_CLIENT_ID: "817289571142205450"
         SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase

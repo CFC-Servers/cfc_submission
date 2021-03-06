@@ -14,7 +14,7 @@ var Forms = []forms.Form{
 			forms.FieldValidator{}.Accept(
 				forms.Field("why").Min(18).Max(1024),
 				forms.Field("whyNot").Min(18).Max(1024),
-				forms.Field("description").Min(18).Max(1024).Optional(),
+				forms.Field("description").Max(1024).Optional(),
 				forms.Field("title").Min(6).Max(124),
 				forms.Field("image").Max(124).Optional(),
 				forms.Field("realm").MustBe("cfc3", "cfcrp", "cfcmc", "cfcrvr", "discord", "other"),
