@@ -16,7 +16,7 @@ var suggestionsBaseUrl = os.Getenv("SUGGESTIONS_BASE_URL")
 var publicKey = os.Getenv("DISCORD_PUBLIC_KEY")
 var botToken = os.Getenv("DISCORD_BOT_TOKEN")
 var clientId = os.Getenv("DISCORD_CLIENT_ID")
-var guildID  = os.Getenv("GUILD_ID")
+var guildID = os.Getenv("GUILD_ID")
 
 func main() {
 	goslashApp, err := goslash.NewApp(clientId, "Bot "+botToken)
@@ -37,9 +37,8 @@ func main() {
 		return
 	}
 	listener := lambda.NewListener(publicKey)
-	goslashApp.SetListener( listener )
+	goslashApp.SetListener(listener)
 	listener.Start()
-
 
 }
 
@@ -90,9 +89,9 @@ func suggestCommandHandler(ctx *goslash.InteractionContext) *goslash.Interaction
 
 	submission := forms.NewSubmission(form, forms.OwnerInfo{
 		ID:     ctx.GetUser().ID,
-		Name:   ctx.GetUser().Username+"#"+ctx.GetUser().Discriminator,
+		Name:   ctx.GetUser().Username + "#" + ctx.GetUser().Discriminator,
 		Avatar: avatar,
-		URL:     "",
+		URL:    "",
 	})
 
 	_ = dynamodb.PutSubmission(util.GetTable(), submission)

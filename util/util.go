@@ -10,7 +10,7 @@ import (
 )
 
 func GetTable() dynamo.Table {
-	   s, err := session.NewSession(&aws.Config{
+	s, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-east-1"), // TODO this  region shouldnt be hardcoded
 	})
 	if err != nil {

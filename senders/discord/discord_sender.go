@@ -87,7 +87,7 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 			IconURL: submission.OwnerInfo.Avatar,
 		}
 		embed.Footer = &MessageEmbedFooter{
-			Text: "User ID: "+submission.OwnerID,
+			Text: "User ID: " + submission.OwnerID,
 		}
 	}
 

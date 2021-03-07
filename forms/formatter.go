@@ -10,11 +10,11 @@ type Formatter interface {
 }
 
 type DefaultFormatter struct {
-	Color int
+	Color      int
 	FieldOrder []string
 }
 
-func(formatter DefaultFormatter) Fields(newFields ...string) DefaultFormatter {
+func (formatter DefaultFormatter) Fields(newFields ...string) DefaultFormatter {
 	formatter.FieldOrder = append(formatter.FieldOrder, newFields...)
 	return formatter
 }
@@ -66,11 +66,17 @@ type FormattedContentField struct {
 
 func getPrettyRealm(realm string) string {
 	switch realm {
-	case "cfc3": return "Build/Kill"
-	case "cfcmc": return "Minecraft"
-	case "discord": return "Discord"
-	case "cfcttt": return "TTT"
-	case "cfcprophunt": return "Prop Hunt"
-	default: return realm
+	case "cfc3":
+		return "Build/Kill"
+	case "cfcmc":
+		return "Minecraft"
+	case "discord":
+		return "Discord"
+	case "cfcttt":
+		return "TTT"
+	case "cfcprophunt":
+		return "Prop Hunt"
+	default:
+		return realm
 	}
 }
