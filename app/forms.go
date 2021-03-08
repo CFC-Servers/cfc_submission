@@ -29,7 +29,9 @@ var Forms = []forms.Form{
 
 		Formatter: forms.DefaultFormatter{Color: 0x34eb5b}.Fields(
 			"why", "whyNot", "link",
-		),
+		).
+			SetFieldName("whyNot", "Why Not?").
+			SetFieldName("why", "Why?"),
 	},
 }
 
