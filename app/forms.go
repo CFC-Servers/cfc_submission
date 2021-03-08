@@ -27,9 +27,8 @@ var Forms = []forms.Form{
 			SuggestionsDestination,
 		},
 
-		Formatter: forms.DefaultFormatter{Color: 0x34eb5b}.Fields(
-			"why", "whyNot", "link",
-		).
+		Formatter: forms.DefaultFormatter{Color: 0x34eb5b}.
+			Fields("why", "whyNot", "link").
 			SetFieldName("whyNot", "Why Not?").
 			SetFieldName("why", "Why?"),
 	},
