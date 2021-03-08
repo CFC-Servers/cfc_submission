@@ -1,6 +1,6 @@
 # CFC Suggestions
 AWS API for CFC Forms
-
+test
 ## structure
 ##### app
 cfc specific config 
@@ -16,3 +16,4 @@ represents methods for sending a submission e.g. discord webhooks
 
 ##### Cmd
 each directory is a separate lambda function called by api gateway
+
