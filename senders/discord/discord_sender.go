@@ -7,8 +7,8 @@ import (
 )
 
 type DiscordSender struct {
-	WebhookUrl string
-	client     *resty.Client
+	WebhookUrl  string
+	client      *resty.Client
 	noAnonymous bool
 }
 
@@ -21,8 +21,8 @@ func New(webhook string) *DiscordSender {
 
 func NewNoAnonymous(webhook string) *DiscordSender {
 	return &DiscordSender{
-		WebhookUrl: webhook,
-		client:     resty.New(),
+		WebhookUrl:  webhook,
+		client:      resty.New(),
 		noAnonymous: true,
 	}
 }
