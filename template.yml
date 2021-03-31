@@ -6,7 +6,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'SuggestionsDiscordWebhook'
   AuditDiscordWebhook:
-    Type: AWS:SSM:Parameter::Value<String>
+    Type: AWS::SSM::Parameter::Value<String>
     Default: "CFCServersWebhooksWebhook"
 
   CFCFormsDiscordBotToken:
