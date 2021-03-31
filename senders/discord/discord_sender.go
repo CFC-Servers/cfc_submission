@@ -7,9 +7,10 @@ import (
 )
 
 type DiscordSender struct {
-	WebhookUrl  string
-	client      *resty.Client
-	noAnonymous bool
+	WebhookUrl   string
+	client       *resty.Client
+	noAnonymous  bool
+	ignoreDelete bool
 }
 
 func New(webhook string) *DiscordSender {
@@ -21,9 +22,10 @@ func New(webhook string) *DiscordSender {
 
 func NewNoAnonymous(webhook string) *DiscordSender {
 	return &DiscordSender{
-		WebhookUrl:  webhook,
-		client:      resty.New(),
-		noAnonymous: true,
+		WebhookUrl:   webhook,
+		client:       resty.New(),
+		noAnonymous:  true,
+		ignoreDelete: true,
 	}
 }
 
@@ -48,6 +50,9 @@ func (sender *DiscordSender) Edit(messageid string, submission forms.Submission)
 }
 
 func (sender *DiscordSender) Delete(messageid string) error {
+	if sender.ignoreDelete {
+		return nil
+	}
 	// TODO check status code ensuring it is 200
 	resp, err := sender.client.R().
 		Delete(sender.WebhookUrl + "/messages/" + messageid)
