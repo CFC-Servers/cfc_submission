@@ -25,6 +25,7 @@ var Forms = []forms.Form{
 
 		Destinations: []forms.Destination{
 			SuggestionsDestination,
+			AuditLocation,
 		},
 
 		Formatter: forms.DefaultFormatter{Color: 0x34eb5b}.
