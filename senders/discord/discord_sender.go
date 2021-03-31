@@ -9,6 +9,7 @@ import (
 type DiscordSender struct {
 	WebhookUrl string
 	client     *resty.Client
+	noAnonymous bool
 }
 
 func New(webhook string) *DiscordSender {
@@ -18,8 +19,16 @@ func New(webhook string) *DiscordSender {
 	}
 }
 
+func NewNoAnonymous(webhook string) *DiscordSender {
+	return &DiscordSender{
+		WebhookUrl: webhook,
+		client:     resty.New(),
+		noAnonymous: true,
+	}
+}
+
 func (sender *DiscordSender) Edit(messageid string, submission forms.Submission) error {
-	embed := getEmbed(submission)
+	embed := sender.getEmbed(submission)
 	var msg Message
 
 	// TODO check status code ensuring it is 200
@@ -53,7 +62,7 @@ func (sender *DiscordSender) Delete(messageid string) error {
 }
 
 func (sender *DiscordSender) Send(submission forms.Submission) (string, error) {
-	embed := getEmbed(submission)
+	embed := sender.getEmbed(submission)
 	var msg Message
 
 	// TODO check status code ensuring it is 200
@@ -71,7 +80,7 @@ func (sender *DiscordSender) Send(submission forms.Submission) (string, error) {
 	return msg.ID, nil
 }
 
-func getEmbed(submission forms.Submission) MessageEmbed {
+func (sender *DiscordSender) getEmbed(submission forms.Submission) MessageEmbed {
 	content := submission.Content
 
 	embed := MessageEmbed{Color: submission.Content.Color}
@@ -81,7 +90,7 @@ func getEmbed(submission forms.Submission) MessageEmbed {
 		URL: content.Image,
 	}
 
-	if !submission.Fields.GetBool("anonymous") { // TODO should fields only be accessed this way in the formatter?
+	if sender.noAnonymous || !submission.Fields.GetBool("anonymous") { // TODO should fields only be accessed this way in the formatter?
 		embed.Author = &MessageEmbedAuthor{
 			Name:    submission.OwnerInfo.Name,
 			IconURL: submission.OwnerInfo.Avatar,

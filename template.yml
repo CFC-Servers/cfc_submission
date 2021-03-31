@@ -5,6 +5,10 @@ Parameters:
   SuggestionsDiscordWebhook:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'SuggestionsDiscordWebhook'
+  AuditDiscordWebhook:
+    Type: AWS:SSM:Parameter::Value<String>
+    Default: "CFCServersWebhooksWebhook"
+
   CFCFormsDiscordBotToken:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCFormsDiscordBotToken'
@@ -21,6 +25,7 @@ Globals:
         DISCORD_CLIENT_ID: "817289571142205450"
         SUBMISSIONS_DATABASE: !Ref SubmissionsDatabase
         SUGGESTIONS_WEBHOOK: !Ref SuggestionsDiscordWebhook
+        CFCSERVERS_WEBHOOKS_WEBHOOK: !Ref AuditDiscordWebhook
         DISCORD_BOT_TOKEN: !Ref CFCFormsDiscordBotToken
         GUILD_ID: 225975453138026497
 
