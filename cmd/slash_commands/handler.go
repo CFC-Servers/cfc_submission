@@ -42,8 +42,8 @@ func main() {
 
 }
 
-func mysubmissionsCommandHandler(ctx *goslash.InteractionContext) *goslash.InteractionResponse {
-	submissions, err := dynamodb.GetOwnerSubmissions(util.GetTable(), ctx.GetUser().ID)
+func mysubmissionsCommandHandler(ctx *goslash.InteractionUpdate) *goslash.InteractionResponse {
+	submissions, err := dynamodb.GetOwnerSubmissions(util.GetTable(), ctx.GetAuthor().ID)
 	if err != nil {
 		return goslash.Response("There was a problem fetching your submissions").Ephemeral()
 	}
@@ -69,15 +69,15 @@ func mysubmissionsCommandHandler(ctx *goslash.InteractionContext) *goslash.Inter
 	return goslash.Response(builder.String()).Ephemeral()
 }
 
-func suggestCommandHandler(ctx *goslash.InteractionContext) *goslash.InteractionResponse {
+func suggestCommandHandler(ctx *goslash.InteractionUpdate) *goslash.InteractionResponse {
 	form, err := app.GetForm("suggestion")
 	if err != nil {
-		return goslash.Response("sorry there was an error creating your suggestion").OnlyAuthor()
+		return goslash.Response("sorry there was an error creating your suggestion").Ephemeral()
 	}
 
-	avatar := fmt.Sprintf("https://cdn.discordapp.com/avatars/%v/%v.png?size=1024", ctx.GetUser().ID, ctx.GetUser().Avatar)
+	avatar := fmt.Sprintf("https://cdn.discordapp.com/avatars/%v/%v.png?size=1024", ctx.GetAuthor().ID, ctx.GetAuthor().Avatar)
 
-	existingSubmissions, _ := dynamodb.GetOwnerSubmissions(util.GetTable(), ctx.GetUser().ID)
+	existingSubmissions, _ := dynamodb.GetOwnerSubmissions(util.GetTable(), ctx.GetAuthor().ID)
 	for _, submission := range existingSubmissions {
 		if submission.FormName != "suggestion" {
 			continue
@@ -88,8 +88,8 @@ func suggestCommandHandler(ctx *goslash.InteractionContext) *goslash.Interaction
 	}
 
 	submission := forms.NewSubmission(form, forms.OwnerInfo{
-		ID:     ctx.GetUser().ID,
-		Name:   ctx.GetUser().Username + "#" + ctx.GetUser().Discriminator,
+		ID:     ctx.GetAuthor().ID,
+		Name:   ctx.GetAuthor().Username + "#" + ctx.GetAuthor().Discriminator,
 		Avatar: avatar,
 		URL:    "",
 	})
