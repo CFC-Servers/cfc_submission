@@ -17,7 +17,7 @@ var Forms = []forms.Form{
 				forms.Field("description").Max(1024).Optional(),
 				forms.Field("title").Min(6).Max(124),
 				forms.Field("image").Max(124).Optional(),
-				forms.Field("realm").MustBe("cfc3", "cfcrp", "cfcmc", "cfcrvr", "discord", "other"),
+				forms.Field("realm").MustBe("cfc3", "cfcrp", "cfcmc", "cfcttt", "cfcrvr", "discord", "other"),
 				forms.Field("link").Max(124).Optional(),
 				forms.Field("anonymous").Optional(),
 			),
