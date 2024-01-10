@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/cfc-servers/cfc_suggestions/app"
 	"github.com/cfc-servers/cfc_suggestions/dynamodb"
 	"github.com/cfc-servers/cfc_suggestions/forms"
 	"github.com/cfc-servers/cfc_suggestions/util"
 	"github.com/plally/goslash/goslash"
 	"github.com/plally/goslash/listeners/lambda"
-	"os"
-	"strings"
 )
 
 var suggestionsBaseUrl = os.Getenv("SUGGESTIONS_BASE_URL")
@@ -36,6 +37,7 @@ func main() {
 		goslashApp.RegisterAllGuild(guildID)
 		return
 	}
+	fmt.Println("starting listener")
 	listener := lambda.NewListener(publicKey)
 	goslashApp.SetListener(listener)
 	listener.Start()

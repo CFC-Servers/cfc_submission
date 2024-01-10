@@ -15,8 +15,8 @@ Parameters:
 
 Globals:
   Function:
-    Runtime: go1.x
-    Handler: lambda
+    Runtime: provided.al2
+    Handler: bootstrap
     Timeout: 10
     Environment:
       Variables:
@@ -78,13 +78,16 @@ Resources:
 
   AuthorizerFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/authorizer/
-
+      CodeUri: ./cmd/authorizer
   CreateSubmission:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/create_submission/
+      CodeUri: ./cmd/create_submission
       Policies: AmazonDynamoDBFullAccess
       Events:
         CreateHandler:
@@ -96,8 +99,10 @@ Resources:
 
   IndexSubmissions:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/index_submissions/
+      CodeUri: ./cmd/index_submissions
       Policies: AmazonDynamoDBFullAccess
       Events:
         IndexHandler:
@@ -109,8 +114,12 @@ Resources:
 
   GetSubmission:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/get_submission/
+      CodeUri: ./cmd/get_submission
       Policies: AmazonDynamoDBFullAccess
       Events:
         GetHandler:
@@ -124,8 +133,10 @@ Resources:
 
   SendSubmission:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/send_submission/
+      CodeUri: ./cmd/send_submission
       Policies: AmazonDynamoDBFullAccess
       Events:
         SendHandler:
@@ -139,8 +150,10 @@ Resources:
 
   DeleteSubmission:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/delete_submission/
+      CodeUri: ./cmd/delete_submission
       Policies: AmazonDynamoDBFullAccess
       Events:
         DeleteHandler:
@@ -154,8 +167,10 @@ Resources:
 
   HandleDiscordInteraction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
-      CodeUri: cmd/slash_commands/
+      CodeUri: ./cmd/slash_commands
       Policies: AmazonDynamoDBFullAccess
       Events:
         DeleteHandler:
