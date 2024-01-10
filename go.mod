@@ -7,7 +7,6 @@ require (
 	github.com/aws/aws-sdk-go v1.36.25
 	github.com/go-resty/resty/v2 v2.4.0
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/guregu/dynamo v1.10.2
 	github.com/plally/goslash v0.1.2-0.20210501142734-b97cdda6fdfb
 	github.com/sirupsen/logrus v1.7.0
