@@ -1,22 +1,26 @@
 package main
 
 import (
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"os"
 	"strings"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 func main() {
 	lambda.Start(AuthorizerRequest)
 }
 
-var IsValidToken map[string]bool
+var IsValidToken = make(map[string]bool)
 
 func init() {
 	validTokens := strings.Split(os.Getenv("VALID_AUTH_TOKENS"), ",")
 
 	for _, token := range validTokens {
+		if strings.TrimSpace(token) == "" {
+			continue
+		}
 		IsValidToken[token] = true
 	}
 }
@@ -28,10 +32,10 @@ type AuthResponse struct {
 var AllowedResponse = AuthResponse{IsAuthorized: true}
 var DeniedResponse = AuthResponse{IsAuthorized: false}
 
-func AuthorizerRequest(req events.APIGatewayCustomAuthorizerRequest) AuthResponse {
+func AuthorizerRequest(req events.APIGatewayCustomAuthorizerRequest) (AuthResponse, error) {
 	if IsValidToken[req.AuthorizationToken] {
-		return AllowedResponse
+		return AllowedResponse, nil
 	}
 
-	return DeniedResponse
+	return DeniedResponse, nil
 }
