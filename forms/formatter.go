@@ -90,6 +90,8 @@ func getPrettyRealm(realm string) string {
 		return "Discord"
 	case "cfcttt":
 		return "TTT"
+	case "glee":
+		return "Hunters Glee"
 	case "cfcprophunt":
 		return "Prop Hunt"
 	default:
